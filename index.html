@@ -472,6 +472,7 @@
                     <input type="url" id="website-url" placeholder="https://example.com" value="https://dzukou.com/">
                 </div>
                 <button class="btn btn-primary" onclick="startAnalysis()">🔍 Analyze</button>
+                <button class="btn btn-secondary" onclick="testPageSpeedAPI()" style="font-size:12px;">🧪 Test API</button>
             </div>
             <div class="competitors-section">
                 <div class="competitors-header"><h3>📊 Add Competitors (Optional)</h3></div>
@@ -639,7 +640,7 @@
     </div>
 
     <script>
-        const state = { mainSite: null, competitors: [], analysisData: {}, competitorData: {}, apiStatus: { pageSpeed: false, html: false } };
+        const state = { mainSite: null, competitors: [], analysisData: {}, competitorData: {}, apiStatus: { pageSpeed: false, html: false }, lastApiError: null };
         const GEMINI_KEY = 'AIzaSyBX3D1RlUbWSMG5BYPTocyEmsZfCeysTe4';
         const PAGESPEED_KEY = 'AIzaSyDJsI1F60G6XHnvM2-rYU376kZpQKA0_ns';
         const PROXIES = [
@@ -721,18 +722,26 @@
         async function fetchPageSpeed(url, retries = 3) {
             const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=accessibility&category=best-practices&category=seo&key=${PAGESPEED_KEY}`;
             
+            console.log('PageSpeed API URL:', api);
+            state.lastApiError = null;
+            
             for (let attempt = 1; attempt <= retries; attempt++) {
                 try {
                     updateProgress(`Fetching PageSpeed data (attempt ${attempt}/${retries})...`, 20 + (attempt * 5));
                     
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+                    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout (PageSpeed can be slow)
                     
+                    console.log(`Attempt ${attempt}: Fetching...`);
                     const res = await fetch(api, { signal: controller.signal });
                     clearTimeout(timeoutId);
                     
+                    console.log(`Attempt ${attempt}: Response status ${res.status}`);
+                    
                     if (!res.ok) {
-                        console.warn(`PageSpeed API returned ${res.status}`);
+                        const errorText = await res.text();
+                        console.error(`PageSpeed API returned ${res.status}:`, errorText);
+                        state.lastApiError = `HTTP ${res.status}: ${errorText.substring(0, 200)}`;
                         if (attempt < retries) {
                             await new Promise(r => setTimeout(r, 2000 * attempt));
                             continue;
@@ -741,9 +750,11 @@
                     }
                     
                     const data = await res.json();
+                    console.log('PageSpeed response keys:', Object.keys(data));
                     
                     if (data.error) {
-                        console.warn('PageSpeed API error:', data.error);
+                        console.error('PageSpeed API error:', data.error);
+                        state.lastApiError = `API Error: ${data.error.message || JSON.stringify(data.error)}`;
                         if (attempt < retries) {
                             await new Promise(r => setTimeout(r, 2000 * attempt));
                             continue;
@@ -753,17 +764,20 @@
                     
                     // Validate that we got actual lighthouse data
                     if (data.lighthouseResult && data.lighthouseResult.categories) {
-                        console.log('PageSpeed data received successfully');
+                        console.log('PageSpeed data received successfully!');
+                        console.log('Categories:', Object.keys(data.lighthouseResult.categories));
                         return data;
                     } else {
-                        console.warn('PageSpeed data incomplete');
+                        console.warn('PageSpeed data incomplete - missing lighthouseResult or categories');
+                        state.lastApiError = 'Incomplete data from API';
                         if (attempt < retries) {
                             await new Promise(r => setTimeout(r, 2000 * attempt));
                             continue;
                         }
                     }
                 } catch (e) {
-                    console.error(`PageSpeed error (attempt ${attempt}):`, e);
+                    console.error(`PageSpeed error (attempt ${attempt}):`, e.name, e.message);
+                    state.lastApiError = `${e.name}: ${e.message}`;
                     if (attempt < retries) {
                         await new Promise(r => setTimeout(r, 2000 * attempt));
                         continue;
@@ -983,6 +997,8 @@
             state.apiStatus.pageSpeed = hasPS;
             state.apiStatus.html = hasHTML;
             
+            const errorDetail = state.lastApiError ? `<br><small style="opacity:0.8">Error: ${state.lastApiError}</small>` : '';
+            
             if (hasPS && hasHTML) {
                 banner.innerHTML = `
                     <div class="api-warning success">
@@ -994,7 +1010,7 @@
                 banner.innerHTML = `
                     <div class="api-warning">
                         <span class="api-warning-icon">⚠️</span>
-                        <span>PageSpeed API unavailable. Performance, SEO, and Accessibility scores are estimated. Technical and Content analysis from HTML parsing.</span>
+                        <span>PageSpeed API unavailable. Performance, SEO, and Accessibility scores are estimated. Technical and Content analysis from HTML parsing.${errorDetail}</span>
                     </div>
                 `;
             } else if (hasPS && !hasHTML) {
@@ -1008,7 +1024,7 @@
                 banner.innerHTML = `
                     <div class="api-warning error">
                         <span class="api-warning-icon">❌</span>
-                        <span>Limited analysis available. Both PageSpeed API and HTML parsing failed. Try a different URL or check if the site is accessible.</span>
+                        <span>Limited analysis available. Both PageSpeed API and HTML parsing failed. Try a different URL or check if the site is accessible.${errorDetail}</span>
                     </div>
                 `;
             }
@@ -1494,6 +1510,50 @@ Provide HTML formatted recommendations with h4 headings for: Executive Summary, 
 
         document.getElementById('website-url').addEventListener('keypress', e => { if (e.key === 'Enter') startAnalysis(); });
         document.getElementById('competitor-url').addEventListener('keypress', e => { if (e.key === 'Enter') addCompetitor(); });
+        
+        // Debug function to test PageSpeed API directly
+        async function testPageSpeedAPI() {
+            const testUrl = 'https://example.com';
+            const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(testUrl)}&strategy=mobile&category=performance&key=${PAGESPEED_KEY}`;
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'api-warning';
+            resultDiv.innerHTML = '<span class="api-warning-icon">⏳</span><span>Testing PageSpeed API...</span>';
+            document.querySelector('.search-section').appendChild(resultDiv);
+            
+            try {
+                console.log('Testing API with URL:', api);
+                const startTime = Date.now();
+                
+                const response = await fetch(api);
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.error) {
+                    resultDiv.className = 'api-warning error';
+                    resultDiv.innerHTML = `<span class="api-warning-icon">❌</span><span>API Error (${elapsed}s): ${data.error.message}<br><small>Code: ${data.error.code} | Check if API key is valid and has PageSpeed API enabled</small></span>`;
+                } else if (data.lighthouseResult) {
+                    const perfScore = Math.round((data.lighthouseResult.categories?.performance?.score || 0) * 100);
+                    resultDiv.className = 'api-warning success';
+                    resultDiv.innerHTML = `<span class="api-warning-icon">✅</span><span>API Working! (${elapsed}s) - Test site performance: ${perfScore}/100<br><small>The API is functioning correctly. If analysis still fails, the target website may be blocking requests or timing out.</small></span>`;
+                } else {
+                    resultDiv.className = 'api-warning';
+                    resultDiv.innerHTML = `<span class="api-warning-icon">⚠️</span><span>Unexpected response (${elapsed}s)<br><small>${JSON.stringify(data).substring(0, 200)}</small></span>`;
+                }
+            } catch (e) {
+                console.error('Test failed:', e);
+                resultDiv.className = 'api-warning error';
+                resultDiv.innerHTML = `<span class="api-warning-icon">❌</span><span>Request Failed: ${e.name} - ${e.message}<br><small>This could be a CORS issue, network problem, or blocked request. Check browser console (F12) for details.</small></span>`;
+            }
+            
+            // Auto-remove after 30 seconds
+            setTimeout(() => resultDiv.remove(), 30000);
+        }
     </script>
 </body>
 </html>
