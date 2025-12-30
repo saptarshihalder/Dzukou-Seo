@@ -2545,6 +2545,26 @@ Format the response in clean HTML with proper headings (h4) and bullet points. B
             return 'var(--danger)';
         }
 
+        function updateStatusBadge(elementId, score) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            
+            // Remove old classes
+            el.classList.remove('status-good', 'status-warning', 'status-error');
+            
+            // Add new class based on score
+            if (score >= 80) {
+                el.classList.add('status-good');
+                el.textContent = 'Good';
+            } else if (score >= 50) {
+                el.classList.add('status-warning');
+                el.textContent = 'Needs Work';
+            } else {
+                el.classList.add('status-error');
+                el.textContent = 'Critical';
+            }
+        }
+
         function getStatusBadge(score) {
             if (score >= 80) return '<span class="status-badge status-good">Good</span>';
             if (score >= 50) return '<span class="status-badge status-warning">Needs Work</span>';
@@ -2710,7 +2730,7 @@ Format the response in clean HTML with proper headings (h4) and bullet points. B
             const actualTitle = titleAudit?.details?.items?.[0]?.title || seoData.meta.title || '';
             const titleLength = actualTitle.length;
             
-            document.getElementById('meta-status').outerHTML = getStatusBadge(Math.round((titleScore + descScore) / 2));
+            updateStatusBadge('meta-status', Math.round((titleScore + descScore) / 2));
             document.getElementById('meta-analysis').innerHTML = `
                 <div class="data-item">
                     <span class="data-label">📌 Title</span>
@@ -2744,7 +2764,7 @@ Format the response in clean HTML with proper headings (h4) and bullet points. B
 
             // Headings Analysis
             const h1Score = seoData.headings.h1.count === 1 ? 100 : seoData.headings.h1.count > 0 ? 50 : 0;
-            document.getElementById('heading-status').outerHTML = getStatusBadge(h1Score);
+            updateStatusBadge('heading-status', h1Score);
             document.getElementById('heading-analysis').innerHTML = `
                 ${['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map(tag => `
                     <div class="data-item">
@@ -2759,13 +2779,12 @@ Format the response in clean HTML with proper headings (h4) and bullet points. B
                         </div>
                     ` : ''}
                 `).join('')}
-                ${!state.analysisData?.htmlFetched ? '<p style="color: var(--text-muted); font-size: 12px; margin-top: 12px;">* Heading data estimated from PageSpeed API</p>' : ''}
             `;
 
             // Security Analysis
             const httpsAudit = audits['is-on-https'];
             const isHttps = httpsAudit?.score === 1 || seoData.technical.isHttps;
-            document.getElementById('security-status').outerHTML = getStatusBadge(isHttps ? 100 : 0);
+            updateStatusBadge('security-status', isHttps ? 100 : 0);
             document.getElementById('security-analysis').innerHTML = `
                 <div class="data-item">
                     <span class="data-label">🔒 HTTPS</span>
@@ -2779,14 +2798,6 @@ Format the response in clean HTML with proper headings (h4) and bullet points. B
                         <span class="data-value" style="color: var(--warning)">${httpsAudit.details.items.length} insecure requests</span>
                     </div>
                 ` : ''}
-                ${audits['csp-xss']?.score !== undefined ? `
-                    <div class="data-item">
-                        <span class="data-label">🛡️ CSP XSS</span>
-                        <span class="data-value" style="color: ${audits['csp-xss'].score === 1 ? 'var(--accent-primary)' : 'var(--warning)'}">
-                            ${audits['csp-xss'].score === 1 ? 'Protected ✓' : 'Review needed'}
-                        </span>
-                    </div>
-                ` : ''}
             `;
 
             // Mobile Analysis
@@ -2795,7 +2806,7 @@ Format the response in clean HTML with proper headings (h4) and bullet points. B
             const fontSizeAudit = audits['font-size'];
             const tapTargetsAudit = audits['tap-targets'];
             
-            document.getElementById('mobile-status').outerHTML = getStatusBadge(hasViewport ? 100 : 0);
+            updateStatusBadge('mobile-status', hasViewport ? 100 : 0);
             document.getElementById('mobile-analysis').innerHTML = `
                 <div class="data-item">
                     <span class="data-label">📱 Viewport</span>
@@ -2830,8 +2841,7 @@ Format the response in clean HTML with proper headings (h4) and bullet points. B
             `;
 
             // Schema Analysis
-            const structuredDataAudit = audits['structured-data-item'];
-            document.getElementById('schema-status').outerHTML = getStatusBadge(seoData.schema.length > 0 ? 100 : 0);
+            updateStatusBadge('schema-status', seoData.schema.length > 0 ? 100 : 0);
             document.getElementById('schema-analysis').innerHTML = seoData.schema.length > 0 ?
                 `<div class="code-block">${JSON.stringify(seoData.schema, null, 2)}</div>` :
                 `<p style="color: var(--text-muted);">No structured data (JSON-LD) detected. Consider adding Schema.org markup for rich snippets.</p>
@@ -2847,7 +2857,7 @@ Format the response in clean HTML with proper headings (h4) and bullet points. B
 
             // Robots Analysis
             const robotsAudit = audits['robots-txt'];
-            document.getElementById('robots-status').outerHTML = getStatusBadge(robotsAudit?.score === 1 ? 100 : 70);
+            updateStatusBadge('robots-status', robotsAudit?.score === 1 ? 100 : 70);
             document.getElementById('robots-analysis').innerHTML = `
                 <div class="data-item">
                     <span class="data-label">🤖 Robots.txt</span>
@@ -2933,7 +2943,7 @@ Format the response in clean HTML with proper headings (h4) and bullet points. B
             `;
 
             // Image Analysis
-            document.getElementById('image-status').outerHTML = getStatusBadge(seoData.images.altPercentage);
+            updateStatusBadge('image-status', seoData.images.altPercentage);
             document.getElementById('image-analysis').innerHTML = `
                 <div class="metric-grid">
                     <div class="metric-item">
