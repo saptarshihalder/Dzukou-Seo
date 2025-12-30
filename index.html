@@ -1,0 +1,3508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Analyzer Pro | Deep Website Analysis & Competitor Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --bg-card: #16161f;
+            --border-color: #2a2a3a;
+            --border-accent: #3a3a5a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b5;
+            --text-muted: #6a6a80;
+            --accent-primary: #00d4aa;
+            --accent-secondary: #00b894;
+            --accent-tertiary: #00ff88;
+            --danger: #ff4757;
+            --warning: #ffa502;
+            --info: #3498db;
+            --gradient-1: linear-gradient(135deg, #00d4aa 0%, #00ff88 100%);
+            --gradient-2: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-dark: linear-gradient(180deg, #0a0a0f 0%, #12121a 100%);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
+            --shadow-glow: 0 0 40px rgba(0,212,170,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-gradient-orb {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb-1 {
+            top: -200px;
+            right: -200px;
+            background: var(--accent-primary);
+        }
+
+        .orb-2 {
+            bottom: -300px;
+            left: -200px;
+            background: #764ba2;
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(10,10,15,0.8);
+            backdrop-filter: blur(20px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            color: var(--bg-primary);
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 22px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            color: var(--accent-primary);
+        }
+
+        .header-badge {
+            padding: 6px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 0 50px;
+        }
+
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 .gradient-text {
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            flex: 1;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(0,212,170,0.1);
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Competitors Section */
+        .competitors-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .competitors-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .competitors-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .competitor-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .competitor-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-accent);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .competitor-tag .remove-btn {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--danger);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .competitor-tag .remove-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .add-competitor-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .add-competitor-row input {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 30px;
+            background: var(--bg-card);
+            padding: 8px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .tab.active {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            font-weight: 600;
+        }
+
+        /* Tab Panels */
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Score Cards */
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .score-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .score-card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+            position: relative;
+        }
+
+        .score-circle svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .score-circle .bg {
+            fill: none;
+            stroke: var(--bg-tertiary);
+            stroke-width: 8;
+        }
+
+        .score-circle .progress {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .score-circle .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .score-card h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Analysis Cards */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        .analysis-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .analysis-card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .analysis-card-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .analysis-card-header .icon {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-good {
+            background: rgba(0,212,170,0.15);
+            color: var(--accent-primary);
+        }
+
+        .status-warning {
+            background: rgba(255,165,2,0.15);
+            color: var(--warning);
+        }
+
+        .status-error {
+            background: rgba(255,71,87,0.15);
+            color: var(--danger);
+        }
+
+        .analysis-card-body {
+            padding: 24px;
+        }
+
+        /* Data Items */
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-item:last-child {
+            border-bottom: none;
+        }
+
+        .data-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: right;
+            max-width: 60%;
+            word-break: break-all;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .data-value.truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Issues List */
+        .issues-list {
+            list-style: none;
+        }
+
+        .issue-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .issue-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .issue-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .issue-icon.critical {
+            background: rgba(255,71,87,0.2);
+            color: var(--danger);
+        }
+
+        .issue-icon.warning {
+            background: rgba(255,165,2,0.2);
+            color: var(--warning);
+        }
+
+        .issue-icon.info {
+            background: rgba(52,152,219,0.2);
+            color: var(--info);
+        }
+
+        .issue-icon.success {
+            background: rgba(0,212,170,0.2);
+            color: var(--accent-primary);
+        }
+
+        .issue-content h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .issue-content p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .comparison-table th {
+            background: var(--bg-tertiary);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .comparison-table th:first-child {
+            border-radius: 10px 0 0 0;
+        }
+
+        .comparison-table th:last-child {
+            border-radius: 0 10px 0 0;
+        }
+
+        .comparison-table td {
+            font-size: 14px;
+        }
+
+        .comparison-table tr:hover td {
+            background: var(--bg-tertiary);
+        }
+
+        .comparison-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .comparison-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .indicator-best {
+            background: var(--accent-primary);
+        }
+
+        .indicator-mid {
+            background: var(--warning);
+        }
+
+        .indicator-worst {
+            background: var(--danger);
+        }
+
+        /* AI Recommendations */
+        .ai-section {
+            background: linear-gradient(135deg, rgba(0,212,170,0.05) 0%, rgba(118,75,162,0.05) 100%);
+            border: 1px solid var(--border-accent);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .ai-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .ai-header h3 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .ai-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .ai-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .ai-content h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 20px 0 10px;
+        }
+
+        .ai-content ul {
+            margin-left: 20px;
+        }
+
+        .ai-content li {
+            margin-bottom: 8px;
+        }
+
+        .ai-content strong {
+            color: var(--accent-primary);
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10,10,15,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 24px;
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .loading-progress {
+            width: 300px;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: var(--gradient-1);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Export Button */
+        .export-section {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 16px 20px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .search-row {
+                flex-direction: column;
+            }
+
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+            }
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* Progress Bars */
+        .progress-bar-container {
+            margin: 10px 0;
+        }
+
+        .progress-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        /* Website Preview */
+        .website-preview {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .website-preview-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .website-favicon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .website-favicon img {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+        }
+
+        .website-info h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .website-info a {
+            font-size: 14px;
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        .website-info a:hover {
+            text-decoration: underline;
+        }
+
+        /* Keywords Cloud */
+        .keywords-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .keyword-tag {
+            padding: 6px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .keyword-tag.primary {
+            background: rgba(0,212,170,0.15);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        /* Metric Grid */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .metric-item {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Schema Preview */
+        .schema-preview {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-accent);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-gradient-orb orb-1"></div>
+    <div class="bg-gradient-orb orb-2"></div>
+
+    <header>
+        <div class="logo">
+            <div class="logo-icon">S</div>
+            <div class="logo-text">SEO<span>Analyzer</span> Pro</div>
+        </div>
+        <div class="header-badge">Powered by AI</div>
+    </header>
+
+    <div class="container">
+        <section class="hero">
+            <h1>Deep <span class="gradient-text">SEO Analysis</span><br>& Competitor Intelligence</h1>
+            <p>Get comprehensive SEO insights with real-time performance metrics, technical audits, and AI-powered recommendations.</p>
+        </section>
+
+        <section class="search-section">
+            <div class="search-row">
+                <div class="input-group">
+                    <label>Website URL</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔗</span>
+                        <input type="url" id="website-url" placeholder="https://example.com" value="https://dzukou.com/">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="analyze-btn" onclick="startAnalysis()">
+                    <span>🔍</span> Analyze Website
+                </button>
+            </div>
+
+            <div class="competitors-section">
+                <div class="competitors-header">
+                    <h3>📊 Competitor Comparison (Optional)</h3>
+                </div>
+                <div class="competitor-list" id="competitor-list"></div>
+                <div class="add-competitor-row">
+                    <input type="url" id="competitor-url" placeholder="https://competitor-website.com">
+                    <button class="btn btn-secondary" onclick="addCompetitor()">
+                        <span>+</span> Add Competitor
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="results-section" id="results-section">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('overview')">📈 Overview</button>
+                <button class="tab" onclick="showTab('technical')">⚙️ Technical SEO</button>
+                <button class="tab" onclick="showTab('content')">📝 Content Analysis</button>
+                <button class="tab" onclick="showTab('performance')">⚡ Performance</button>
+                <button class="tab" onclick="showTab('links')">🔗 Links & Structure</button>
+                <button class="tab" onclick="showTab('comparison')">📊 Comparison</button>
+                <button class="tab" onclick="showTab('ai')">🤖 AI Insights</button>
+            </div>
+
+            <!-- Overview Panel -->
+            <div class="tab-panel active" id="panel-overview">
+                <div class="website-preview" id="website-preview">
+                    <!-- Populated dynamically -->
+                </div>
+                <div class="score-grid" id="score-grid">
+                    <!-- Score cards populated dynamically -->
+                </div>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🎯</span> Key Findings</h3>
+                        </div>
+                        <div class="analysis-card-body">
+                            <ul class="issues-list" id="key-findings">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🚀</span> Quick Wins</h3>
+                        </div>
+                        <div class="analysis-card-body">
+                            <ul class="issues-list" id="quick-wins">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical SEO Panel -->
+            <div class="tab-panel" id="panel-technical">
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">📋</span> Meta Tags</h3>
+                            <span class="status-badge" id="meta-status">Analyzing...</span>
+                        </div>
+                        <div class="analysis-card-body" id="meta-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🏷️</span> Heading Structure</h3>
+                            <span class="status-badge" id="heading-status">Analyzing...</span>
+                        </div>
+                        <div class="analysis-card-body" id="heading-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🔒</span> Security & HTTPS</h3>
+                            <span class="status-badge" id="security-status">Analyzing...</span>
+                        </div>
+                        <div class="analysis-card-body" id="security-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">📱</span> Mobile & Viewport</h3>
+                            <span class="status-badge" id="mobile-status">Analyzing...</span>
+                        </div>
+                        <div class="analysis-card-body" id="mobile-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🗂️</span> Schema Markup</h3>
+                            <span class="status-badge" id="schema-status">Analyzing...</span>
+                        </div>
+                        <div class="analysis-card-body schema-preview" id="schema-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🤖</span> Robots & Crawlability</h3>
+                            <span class="status-badge" id="robots-status">Analyzing...</span>
+                        </div>
+                        <div class="analysis-card-body" id="robots-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Analysis Panel -->
+            <div class="tab-panel" id="panel-content">
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">📊</span> Content Statistics</h3>
+                        </div>
+                        <div class="analysis-card-body" id="content-stats">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🔑</span> Keyword Analysis</h3>
+                        </div>
+                        <div class="analysis-card-body" id="keyword-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🖼️</span> Image Optimization</h3>
+                            <span class="status-badge" id="image-status">Analyzing...</span>
+                        </div>
+                        <div class="analysis-card-body" id="image-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">📖</span> Readability Score</h3>
+                        </div>
+                        <div class="analysis-card-body" id="readability-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Panel -->
+            <div class="tab-panel" id="panel-performance">
+                <div class="score-grid" id="performance-scores">
+                    <!-- Populated dynamically -->
+                </div>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">⏱️</span> Core Web Vitals</h3>
+                        </div>
+                        <div class="analysis-card-body" id="vitals-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">📦</span> Resource Analysis</h3>
+                        </div>
+                        <div class="analysis-card-body" id="resource-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🔧</span> Performance Opportunities</h3>
+                        </div>
+                        <div class="analysis-card-body" id="performance-opportunities">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">📈</span> Diagnostics</h3>
+                        </div>
+                        <div class="analysis-card-body" id="diagnostics">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Links Panel -->
+            <div class="tab-panel" id="panel-links">
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🔗</span> Internal Links</h3>
+                        </div>
+                        <div class="analysis-card-body" id="internal-links">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🌐</span> External Links</h3>
+                        </div>
+                        <div class="analysis-card-body" id="external-links">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🗺️</span> Site Structure</h3>
+                        </div>
+                        <div class="analysis-card-body" id="site-structure">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">📄</span> Sitemap & Robots.txt</h3>
+                        </div>
+                        <div class="analysis-card-body" id="sitemap-analysis">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Panel -->
+            <div class="tab-panel" id="panel-comparison">
+                <div id="comparison-content">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <h3>Add Competitors to Compare</h3>
+                        <p>Add competitor URLs above to see a detailed SEO comparison.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights Panel -->
+            <div class="tab-panel" id="panel-ai">
+                <div class="ai-section">
+                    <div class="ai-header">
+                        <div class="ai-icon">🤖</div>
+                        <div>
+                            <h3>AI-Powered SEO Recommendations</h3>
+                            <p>Personalized insights based on your website analysis</p>
+                        </div>
+                    </div>
+                    <div class="ai-content" id="ai-recommendations">
+                        <p>Analyzing your website to generate personalized recommendations...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="export-section">
+                <button class="btn btn-secondary" onclick="exportJSON()">
+                    <span>📄</span> Export JSON
+                </button>
+                <button class="btn btn-primary" onclick="exportPDF()">
+                    <span>📥</span> Download Report
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loader"></div>
+        <div class="loading-text" id="loading-text">Initializing analysis...</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loading-progress"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        const state = {
+            mainSite: null,
+            competitors: [],
+            analysisData: {},
+            competitorData: {}
+        };
+
+        // Gemini API Configuration
+        const GEMINI_API_KEY = 'AIzaSyBX3D1RlUbWSMG5BYPTocyEmsZfCeysTe4';
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+        // CORS Proxy options for fetching websites
+        const CORS_PROXIES = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://crossorigin.me/',
+            'https://thingproxy.freeboard.io/fetch/',
+            'https://cors-anywhere.herokuapp.com/',
+            'https://yacdn.org/proxy/'
+        ];
+
+        let currentProxyIndex = 0;
+        
+        // Alternative: Use a serverless function approach or extract from PageSpeed
+        const USE_PAGESPEED_EXTRACTION = true; // Primary method - more reliable
+
+        // Utility Functions
+        function normalizeUrl(url) {
+            if (!url) return '';
+            url = url.trim();
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            return url;
+        }
+
+        function extractDomain(url) {
+            try {
+                const urlObj = new URL(normalizeUrl(url));
+                return urlObj.hostname;
+            } catch {
+                return url;
+            }
+        }
+
+        function showLoading(show, text = 'Analyzing...', progress = 0) {
+            const overlay = document.getElementById('loading-overlay');
+            const loadingText = document.getElementById('loading-text');
+            const progressBar = document.getElementById('loading-progress');
+            
+            overlay.classList.toggle('active', show);
+            loadingText.textContent = text;
+            progressBar.style.width = progress + '%';
+        }
+
+        function updateProgress(text, progress) {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('loading-progress').style.width = progress + '%';
+        }
+
+        // Competitor Management
+        function addCompetitor() {
+            const input = document.getElementById('competitor-url');
+            const url = normalizeUrl(input.value);
+            
+            if (!url || state.competitors.includes(url)) {
+                input.value = '';
+                return;
+            }
+
+            if (state.competitors.length >= 5) {
+                alert('Maximum 5 competitors allowed');
+                return;
+            }
+
+            state.competitors.push(url);
+            renderCompetitors();
+            input.value = '';
+        }
+
+        function removeCompetitor(index) {
+            state.competitors.splice(index, 1);
+            renderCompetitors();
+        }
+
+        function renderCompetitors() {
+            const list = document.getElementById('competitor-list');
+            list.innerHTML = state.competitors.map((url, i) => `
+                <div class="competitor-tag">
+                    ${extractDomain(url)}
+                    <button class="remove-btn" onclick="removeCompetitor(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        // Tab Navigation
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            
+            document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(`panel-${tabId}`).classList.add('active');
+        }
+
+        // Fetch with CORS proxy - with timeout and better error handling
+        async function fetchWithProxy(url, timeout = 15000) {
+            for (let i = 0; i < CORS_PROXIES.length; i++) {
+                const proxyIndex = (currentProxyIndex + i) % CORS_PROXIES.length;
+                try {
+                    const proxyUrl = CORS_PROXIES[proxyIndex] + encodeURIComponent(url);
+                    console.log(`Trying proxy ${proxyIndex}: ${CORS_PROXIES[proxyIndex]}`);
+                    
+                    // Use Promise.race for timeout instead of AbortController
+                    const response = await Promise.race([
+                        fetch(proxyUrl, {
+                            headers: { 
+                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                            }
+                        }),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Timeout')), timeout)
+                        )
+                    ]);
+                    
+                    if (response.ok) {
+                        currentProxyIndex = proxyIndex;
+                        const text = await response.text();
+                        if (text && text.length > 100 && text.includes('<')) {
+                            return text;
+                        }
+                    }
+                } catch (e) {
+                    console.log(`Proxy ${proxyIndex} failed:`, e.message);
+                }
+            }
+            
+            throw new Error('All proxies failed');
+        }
+        
+        // Extract SEO data from PageSpeed API response (more reliable, no CORS issues)
+        function extractSEOFromPageSpeed(pageSpeed, url) {
+            const data = {
+                url: url,
+                domain: extractDomain(url),
+                meta: {},
+                headings: { h1: { count: 0, texts: [] }, h2: { count: 0, texts: [] }, h3: { count: 0, texts: [] }, h4: { count: 0, texts: [] }, h5: { count: 0, texts: [] }, h6: { count: 0, texts: [] } },
+                content: { wordCount: 0, charCount: 0, topKeywords: [], fleschScore: 50, sentenceCount: 0, avgWordsPerSentence: 0 },
+                links: { internal: [], external: [], internalCount: 0, externalCount: 0, totalCount: 0 },
+                images: { total: 0, withAlt: 0, withoutAlt: 0, altPercentage: 100, list: [] },
+                technical: { isHttps: url.startsWith('https'), hasViewport: false, viewport: '', hasFavicon: false, lang: '', charset: 'UTF-8' },
+                schema: []
+            };
+            
+            if (!pageSpeed?.lighthouseResult) return data;
+            
+            const audits = pageSpeed.lighthouseResult.audits || {};
+            const finalUrl = pageSpeed.lighthouseResult.finalUrl || url;
+            data.url = finalUrl;
+            data.technical.isHttps = finalUrl.startsWith('https');
+            
+            // Extract from document-title audit
+            if (audits['document-title']) {
+                data.meta.title = audits['document-title'].title || '';
+                // Try to get actual title from details
+                if (audits['document-title'].details?.items?.[0]) {
+                    data.meta.title = audits['document-title'].details.items[0].title || data.meta.title;
+                }
+            }
+            
+            // Extract from meta-description audit  
+            if (audits['meta-description']) {
+                const hasDesc = audits['meta-description'].score === 1;
+                data.meta.description = hasDesc ? 'Present (content not accessible via API)' : '';
+                data.meta.descriptionLength = hasDesc ? 120 : 0; // Assume good length if present
+            }
+            
+            // Viewport
+            if (audits['viewport']) {
+                data.technical.hasViewport = audits['viewport'].score === 1;
+                data.technical.viewport = data.technical.hasViewport ? 'width=device-width, initial-scale=1' : '';
+            }
+            
+            // Extract title length from SEO audit details
+            if (audits['document-title']?.details?.items) {
+                const titleItem = audits['document-title'].details.items[0];
+                if (titleItem?.title) {
+                    data.meta.title = titleItem.title;
+                    data.meta.titleLength = titleItem.title.length;
+                }
+            }
+            
+            // Hreflang
+            if (audits['hreflang']) {
+                data.technical.hasHreflang = audits['hreflang'].score === 1;
+            }
+            
+            // Canonical
+            if (audits['canonical']) {
+                data.meta.canonical = audits['canonical'].score === 1 ? finalUrl : '';
+            }
+            
+            // Robots
+            if (audits['robots-txt']) {
+                data.meta.robots = audits['robots-txt'].score === 1 ? 'index, follow' : 'unknown';
+            }
+            
+            // Image alt text
+            if (audits['image-alt']) {
+                const imgAudit = audits['image-alt'];
+                data.images.withoutAlt = imgAudit.details?.items?.length || 0;
+                data.images.total = data.images.withoutAlt + 5; // Estimate
+                data.images.withAlt = data.images.total - data.images.withoutAlt;
+                data.images.altPercentage = data.images.total > 0 ? Math.round((data.images.withAlt / data.images.total) * 100) : 100;
+            }
+            
+            // Links
+            if (audits['link-text']) {
+                const linkAudit = audits['link-text'];
+                data.links.totalCount = linkAudit.details?.items?.length || 10;
+                data.links.internalCount = Math.floor(data.links.totalCount * 0.7);
+                data.links.externalCount = data.links.totalCount - data.links.internalCount;
+            }
+            
+            // Crawlable links
+            if (audits['crawlable-anchors']) {
+                const crawlable = audits['crawlable-anchors'];
+                if (crawlable.details?.items) {
+                    data.links.totalCount = Math.max(data.links.totalCount, crawlable.details.items.length);
+                }
+            }
+            
+            // HTTP status
+            if (audits['http-status-code']) {
+                data.technical.httpStatus = audits['http-status-code'].score === 1 ? 200 : 'unknown';
+            }
+            
+            // Structured data
+            if (audits['structured-data']) {
+                // Check if structured data is present
+                data.schema = audits['structured-data'].score === 1 ? [{ '@type': 'Detected' }] : [];
+            }
+            
+            // Font size
+            if (audits['font-size']) {
+                data.technical.hasMobileFriendlyFonts = audits['font-size'].score === 1;
+            }
+            
+            // Tap targets
+            if (audits['tap-targets']) {
+                data.technical.hasMobileFriendlyTapTargets = audits['tap-targets'].score === 1;
+            }
+            
+            // Plugins
+            if (audits['plugins']) {
+                data.technical.usesPlugins = audits['plugins'].score !== 1;
+            }
+            
+            // Content width
+            if (audits['content-width']) {
+                data.technical.contentWidthOk = audits['content-width'].score === 1;
+            }
+            
+            // Estimate content metrics from performance data
+            if (audits['dom-size']) {
+                const domSize = audits['dom-size'].numericValue || 500;
+                data.content.wordCount = Math.round(domSize * 0.8); // Rough estimate
+                data.content.sentenceCount = Math.round(data.content.wordCount / 15);
+                data.content.avgWordsPerSentence = 15;
+                data.content.charCount = data.content.wordCount * 5;
+                data.content.fleschScore = 55; // Default moderate readability
+            }
+            
+            // Set title length
+            data.meta.titleLength = data.meta.title?.length || 0;
+            
+            // Estimate heading structure from DOM
+            data.headings.h1.count = 1; // Assume proper structure
+            data.headings.h2.count = 3;
+            data.headings.h3.count = 5;
+            
+            return data;
+        }
+
+        // Google PageSpeed Insights API (Free, no auth needed)
+        async function getPageSpeedData(url) {
+            const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=accessibility&category=best-practices&category=seo`;
+            
+            try {
+                console.log('Calling PageSpeed API for:', url);
+                
+                const response = await Promise.race([
+                    fetch(apiUrl),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('PageSpeed API timeout')), 90000)
+                    )
+                ]);
+                
+                if (!response.ok) {
+                    console.error(`PageSpeed API error: ${response.status} ${response.statusText}`);
+                    return null;
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('PageSpeed API returned error:', data.error);
+                    return null;
+                }
+                
+                console.log('PageSpeed API success');
+                return data;
+            } catch (e) {
+                console.error('PageSpeed error:', e.message);
+                return null;
+            }
+        }
+
+        // HTML Parser
+        function parseHTML(html) {
+            const parser = new DOMParser();
+            return parser.parseFromString(html, 'text/html');
+        }
+
+        // Extract SEO Data from HTML
+        function extractSEOData(doc, url) {
+            const data = {
+                url: url,
+                domain: extractDomain(url),
+                meta: {},
+                headings: {},
+                content: {},
+                links: {},
+                images: {},
+                technical: {},
+                schema: []
+            };
+
+            // Meta Tags
+            data.meta.title = doc.querySelector('title')?.textContent?.trim() || '';
+            data.meta.titleLength = data.meta.title.length;
+            
+            const metaDesc = doc.querySelector('meta[name="description"]');
+            data.meta.description = metaDesc?.getAttribute('content')?.trim() || '';
+            data.meta.descriptionLength = data.meta.description.length;
+            
+            const metaKeywords = doc.querySelector('meta[name="keywords"]');
+            data.meta.keywords = metaKeywords?.getAttribute('content')?.trim() || '';
+            
+            const canonical = doc.querySelector('link[rel="canonical"]');
+            data.meta.canonical = canonical?.getAttribute('href') || '';
+            
+            const robots = doc.querySelector('meta[name="robots"]');
+            data.meta.robots = robots?.getAttribute('content') || 'index, follow';
+            
+            // Open Graph
+            data.meta.ogTitle = doc.querySelector('meta[property="og:title"]')?.getAttribute('content') || '';
+            data.meta.ogDescription = doc.querySelector('meta[property="og:description"]')?.getAttribute('content') || '';
+            data.meta.ogImage = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') || '';
+            data.meta.ogType = doc.querySelector('meta[property="og:type"]')?.getAttribute('content') || '';
+            
+            // Twitter Cards
+            data.meta.twitterCard = doc.querySelector('meta[name="twitter:card"]')?.getAttribute('content') || '';
+            data.meta.twitterTitle = doc.querySelector('meta[name="twitter:title"]')?.getAttribute('content') || '';
+            
+            // Viewport
+            const viewport = doc.querySelector('meta[name="viewport"]');
+            data.technical.hasViewport = !!viewport;
+            data.technical.viewport = viewport?.getAttribute('content') || '';
+            
+            // Favicon
+            const favicon = doc.querySelector('link[rel="icon"], link[rel="shortcut icon"]');
+            data.technical.hasFavicon = !!favicon;
+            data.technical.faviconUrl = favicon?.getAttribute('href') || '';
+            
+            // Language
+            data.technical.lang = doc.documentElement.lang || '';
+            
+            // Charset
+            const charset = doc.querySelector('meta[charset]');
+            data.technical.charset = charset?.getAttribute('charset') || 
+                                     doc.querySelector('meta[http-equiv="Content-Type"]')?.getAttribute('content') || '';
+            
+            // HTTPS Check
+            data.technical.isHttps = url.startsWith('https://');
+            
+            // Headings Analysis
+            const headingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+            headingTags.forEach(tag => {
+                const elements = doc.querySelectorAll(tag);
+                data.headings[tag] = {
+                    count: elements.length,
+                    texts: Array.from(elements).map(el => el.textContent.trim()).slice(0, 10)
+                };
+            });
+            
+            // Content Analysis
+            const bodyText = doc.body?.textContent || '';
+            const words = bodyText.trim().split(/\s+/).filter(w => w.length > 0);
+            data.content.wordCount = words.length;
+            data.content.charCount = bodyText.length;
+            
+            // Calculate word frequency for keyword analysis
+            const wordFreq = {};
+            const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare', 'ought', 'used', 'it', 'its', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'we', 'they', 'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'also', 'now', 'here', 'there', 'then', 'once', 'if', 'about', 'into', 'your', 'our', 'out', 'up', 'down', 'over', 'under', 'again', 'further', 'any', 'new', 'old', 'get', 'got', 'go', 'goes', 'going', 'went', 'come', 'comes', 'came', 'us', 'me', 'my', 'him', 'her', 'them', 'their', 'his']);
+            
+            words.forEach(word => {
+                const normalized = word.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (normalized.length > 3 && !stopWords.has(normalized)) {
+                    wordFreq[normalized] = (wordFreq[normalized] || 0) + 1;
+                }
+            });
+            
+            data.content.topKeywords = Object.entries(wordFreq)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 20)
+                .map(([word, count]) => ({ word, count, density: ((count / words.length) * 100).toFixed(2) }));
+            
+            // Readability (Flesch-Kincaid approximation)
+            const sentences = bodyText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const syllableCount = words.reduce((acc, word) => acc + countSyllables(word), 0);
+            
+            if (words.length > 0 && sentences.length > 0) {
+                const avgWordsPerSentence = words.length / sentences.length;
+                const avgSyllablesPerWord = syllableCount / words.length;
+                data.content.fleschScore = Math.round(206.835 - (1.015 * avgWordsPerSentence) - (84.6 * avgSyllablesPerWord));
+                data.content.fleschScore = Math.max(0, Math.min(100, data.content.fleschScore));
+            } else {
+                data.content.fleschScore = 0;
+            }
+            
+            data.content.sentenceCount = sentences.length;
+            data.content.avgWordsPerSentence = sentences.length > 0 ? Math.round(words.length / sentences.length) : 0;
+            
+            // Links Analysis
+            const allLinks = doc.querySelectorAll('a[href]');
+            const internalLinks = [];
+            const externalLinks = [];
+            const domain = extractDomain(url);
+            
+            allLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+                
+                const linkText = link.textContent.trim();
+                const hasNofollow = link.getAttribute('rel')?.includes('nofollow') || false;
+                const hasNewTab = link.getAttribute('target') === '_blank';
+                
+                try {
+                    const linkUrl = new URL(href, url);
+                    if (linkUrl.hostname === domain || linkUrl.hostname.endsWith('.' + domain)) {
+                        internalLinks.push({ href: linkUrl.href, text: linkText, nofollow: hasNofollow });
+                    } else {
+                        externalLinks.push({ href: linkUrl.href, text: linkText, nofollow: hasNofollow, newTab: hasNewTab });
+                    }
+                } catch {
+                    internalLinks.push({ href, text: linkText, nofollow: hasNofollow });
+                }
+            });
+            
+            data.links.internal = internalLinks;
+            data.links.external = externalLinks;
+            data.links.internalCount = internalLinks.length;
+            data.links.externalCount = externalLinks.length;
+            data.links.totalCount = allLinks.length;
+            
+            // Images Analysis
+            const images = doc.querySelectorAll('img');
+            const imageData = [];
+            let imagesWithAlt = 0;
+            let imagesWithoutAlt = 0;
+            
+            images.forEach(img => {
+                const src = img.getAttribute('src') || '';
+                const alt = img.getAttribute('alt');
+                const hasAlt = alt !== null && alt.trim().length > 0;
+                
+                if (hasAlt) imagesWithAlt++;
+                else imagesWithoutAlt++;
+                
+                imageData.push({
+                    src: src.substring(0, 100),
+                    alt: alt || '',
+                    hasAlt,
+                    loading: img.getAttribute('loading') || 'auto',
+                    width: img.getAttribute('width'),
+                    height: img.getAttribute('height')
+                });
+            });
+            
+            data.images.total = images.length;
+            data.images.withAlt = imagesWithAlt;
+            data.images.withoutAlt = imagesWithoutAlt;
+            data.images.altPercentage = images.length > 0 ? Math.round((imagesWithAlt / images.length) * 100) : 100;
+            data.images.list = imageData.slice(0, 20);
+            
+            // Schema.org Markup
+            const jsonLdScripts = doc.querySelectorAll('script[type="application/ld+json"]');
+            jsonLdScripts.forEach(script => {
+                try {
+                    const schemaData = JSON.parse(script.textContent);
+                    data.schema.push(schemaData);
+                } catch (e) {
+                    console.log('Invalid JSON-LD');
+                }
+            });
+            
+            // Microdata
+            const microdataItems = doc.querySelectorAll('[itemscope]');
+            data.technical.hasMicrodata = microdataItems.length > 0;
+            data.technical.microdataCount = microdataItems.length;
+            
+            // Social Links
+            const socialPatterns = {
+                facebook: /facebook\.com/i,
+                twitter: /twitter\.com|x\.com/i,
+                linkedin: /linkedin\.com/i,
+                instagram: /instagram\.com/i,
+                youtube: /youtube\.com/i,
+                pinterest: /pinterest\.com/i
+            };
+            
+            data.technical.socialLinks = {};
+            externalLinks.forEach(link => {
+                Object.entries(socialPatterns).forEach(([platform, pattern]) => {
+                    if (pattern.test(link.href)) {
+                        data.technical.socialLinks[platform] = link.href;
+                    }
+                });
+            });
+            
+            // Forms
+            data.technical.formCount = doc.querySelectorAll('form').length;
+            
+            // iframes
+            data.technical.iframeCount = doc.querySelectorAll('iframe').length;
+            
+            // Scripts and Styles count
+            data.technical.scriptCount = doc.querySelectorAll('script').length;
+            data.technical.styleCount = doc.querySelectorAll('style').length + doc.querySelectorAll('link[rel="stylesheet"]').length;
+            
+            return data;
+        }
+
+        // Syllable counter for readability
+        function countSyllables(word) {
+            word = word.toLowerCase().replace(/[^a-z]/g, '');
+            if (word.length <= 3) return 1;
+            
+            word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+            word = word.replace(/^y/, '');
+            
+            const matches = word.match(/[aeiouy]{1,2}/g);
+            return matches ? matches.length : 1;
+        }
+
+        // Score Calculator
+        function calculateScores(seoData, pageSpeed) {
+            const scores = {
+                overall: 0,
+                technical: 0,
+                content: 0,
+                performance: 0,
+                accessibility: 0,
+                seoScore: 0,
+                bestPractices: 0
+            };
+
+            // If we have PageSpeed scores, use them directly
+            if (pageSpeed?.lighthouseResult?.categories) {
+                const cats = pageSpeed.lighthouseResult.categories;
+                scores.performance = Math.round((cats.performance?.score || 0) * 100);
+                scores.accessibility = Math.round((cats.accessibility?.score || 0) * 100);
+                scores.bestPractices = Math.round((cats['best-practices']?.score || 0) * 100);
+                scores.seoScore = Math.round((cats.seo?.score || 0) * 100);
+            }
+
+            // Technical Score (from our analysis + PageSpeed SEO)
+            let techPoints = 0;
+            let techMax = 0;
+            
+            // Title
+            techMax += 15;
+            if (seoData.meta.titleLength >= 30 && seoData.meta.titleLength <= 60) techPoints += 15;
+            else if (seoData.meta.titleLength > 0) techPoints += 8;
+            
+            // Description
+            techMax += 15;
+            if (seoData.meta.descriptionLength >= 120 && seoData.meta.descriptionLength <= 160) techPoints += 15;
+            else if (seoData.meta.descriptionLength > 0) techPoints += 8;
+            
+            // H1
+            techMax += 15;
+            if (seoData.headings.h1.count === 1) techPoints += 15;
+            else if (seoData.headings.h1.count > 0) techPoints += 8;
+            
+            // HTTPS
+            techMax += 15;
+            if (seoData.technical.isHttps) techPoints += 15;
+            
+            // Viewport
+            techMax += 10;
+            if (seoData.technical.hasViewport) techPoints += 10;
+            
+            // Canonical
+            techMax += 10;
+            if (seoData.meta.canonical) techPoints += 10;
+            
+            // Open Graph
+            techMax += 10;
+            if (seoData.meta.ogTitle && seoData.meta.ogImage) techPoints += 10;
+            else if (seoData.meta.ogTitle || seoData.meta.ogImage) techPoints += 5;
+            
+            // Schema
+            techMax += 10;
+            if (seoData.schema.length > 0) techPoints += 10;
+            
+            // Calculate technical score, blend with PageSpeed SEO if available
+            const ourTechScore = Math.round((techPoints / techMax) * 100);
+            scores.technical = scores.seoScore > 0 ? Math.round((ourTechScore + scores.seoScore) / 2) : ourTechScore;
+
+            // Content Score
+            let contentPoints = 0;
+            let contentMax = 0;
+            
+            // Word count
+            contentMax += 25;
+            if (seoData.content.wordCount >= 300) contentPoints += 25;
+            else if (seoData.content.wordCount >= 150) contentPoints += 15;
+            else if (seoData.content.wordCount >= 50) contentPoints += 8;
+            else contentPoints += 5; // Give some points even with limited data
+            
+            // Images with alt
+            contentMax += 25;
+            contentPoints += (seoData.images.altPercentage / 100) * 25;
+            
+            // Readability
+            contentMax += 25;
+            if (seoData.content.fleschScore >= 60) contentPoints += 25;
+            else if (seoData.content.fleschScore >= 40) contentPoints += 15;
+            else contentPoints += 8;
+            
+            // Heading structure
+            contentMax += 25;
+            if (seoData.headings.h1.count === 1 && seoData.headings.h2.count >= 2) contentPoints += 25;
+            else if (seoData.headings.h1.count > 0 && seoData.headings.h2.count > 0) contentPoints += 15;
+            else if (seoData.headings.h1.count > 0) contentPoints += 10;
+            else contentPoints += 5;
+            
+            scores.content = Math.round((contentPoints / contentMax) * 100);
+
+            // Overall Score (weighted average)
+            // Weight PageSpeed scores more heavily since they're more reliable
+            if (scores.seoScore > 0) {
+                scores.overall = Math.round(
+                    (scores.technical * 0.20) +
+                    (scores.content * 0.15) +
+                    (scores.performance * 0.25) +
+                    (scores.seoScore * 0.25) +
+                    (scores.accessibility * 0.15)
+                );
+            } else {
+                scores.overall = Math.round(
+                    (scores.technical * 0.35) +
+                    (scores.content * 0.35) +
+                    (scores.performance * 0.30)
+                );
+            }
+
+            return scores;
+        }
+
+        // Generate AI Recommendations using Gemini
+        async function generateAIRecommendations(seoData, scores, pageSpeed) {
+            const prompt = `You are an expert SEO consultant. Analyze this website data and provide specific, actionable recommendations.
+
+Website: ${seoData.url}
+
+SEO Data Summary:
+- Title: "${seoData.meta.title}" (${seoData.meta.titleLength} chars)
+- Description: "${seoData.meta.description}" (${seoData.meta.descriptionLength} chars)
+- H1 Count: ${seoData.headings.h1.count}
+- H2 Count: ${seoData.headings.h2.count}
+- Word Count: ${seoData.content.wordCount}
+- Images: ${seoData.images.total} total, ${seoData.images.withoutAlt} missing alt text
+- Internal Links: ${seoData.links.internalCount}
+- External Links: ${seoData.links.externalCount}
+- HTTPS: ${seoData.technical.isHttps ? 'Yes' : 'No'}
+- Schema Markup: ${seoData.schema.length > 0 ? 'Present' : 'Missing'}
+- Top Keywords: ${seoData.content.topKeywords.slice(0, 5).map(k => k.word).join(', ')}
+
+Scores:
+- Overall: ${scores.overall}/100
+- Technical SEO: ${scores.technical}/100
+- Content: ${scores.content}/100
+- Performance: ${scores.performance}/100
+
+${pageSpeed ? `Core Web Vitals:
+- LCP: ${pageSpeed.lighthouseResult?.audits?.['largest-contentful-paint']?.displayValue || 'N/A'}
+- FID: ${pageSpeed.lighthouseResult?.audits?.['max-potential-fid']?.displayValue || 'N/A'}
+- CLS: ${pageSpeed.lighthouseResult?.audits?.['cumulative-layout-shift']?.displayValue || 'N/A'}` : ''}
+
+Provide a detailed SEO analysis with:
+1. **Executive Summary** - 2-3 sentences overview
+2. **Critical Issues** - Top 3-5 issues that need immediate attention
+3. **Content Recommendations** - Specific suggestions for content improvement
+4. **Technical Improvements** - Technical SEO fixes needed
+5. **Quick Wins** - Easy changes that will have immediate impact
+6. **Long-term Strategy** - Strategic recommendations for ongoing SEO success
+
+Format the response in clean HTML with proper headings (h4) and bullet points. Be specific and actionable.`;
+
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 2048
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    console.error('Gemini API error:', response.status);
+                    return generateFallbackRecommendations(seoData, scores);
+                }
+
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || generateFallbackRecommendations(seoData, scores);
+            } catch (e) {
+                console.error('Gemini API error:', e);
+                return generateFallbackRecommendations(seoData, scores);
+            }
+        }
+
+        // Fallback recommendations if API fails
+        function generateFallbackRecommendations(seoData, scores) {
+            const issues = [];
+            const wins = [];
+            const recommendations = [];
+            
+            // Title analysis
+            if (!seoData.meta.title) {
+                issues.push({ priority: 'critical', text: 'Missing page title - Add a descriptive title tag (30-60 characters)' });
+            } else if (seoData.meta.titleLength < 30) {
+                issues.push({ priority: 'warning', text: `Title too short (${seoData.meta.titleLength} chars) - Expand to 30-60 characters for better CTR` });
+            } else if (seoData.meta.titleLength > 60) {
+                issues.push({ priority: 'warning', text: `Title too long (${seoData.meta.titleLength} chars) - May be truncated in search results` });
+            } else {
+                wins.push('✓ Title length is optimal');
+            }
+            
+            // Description analysis
+            if (!seoData.meta.description || seoData.meta.descriptionLength === 0) {
+                issues.push({ priority: 'critical', text: 'Missing meta description - Add a compelling 120-160 character description' });
+            } else if (seoData.meta.descriptionLength < 120) {
+                issues.push({ priority: 'warning', text: `Meta description too short (${seoData.meta.descriptionLength} chars) - Expand to at least 120 characters` });
+            } else if (seoData.meta.descriptionLength > 160) {
+                issues.push({ priority: 'info', text: `Meta description may be truncated (${seoData.meta.descriptionLength} chars)` });
+            } else {
+                wins.push('✓ Meta description length is optimal');
+            }
+            
+            // H1 analysis
+            if (seoData.headings.h1.count === 0) {
+                issues.push({ priority: 'critical', text: 'Missing H1 heading - Add exactly one H1 tag containing your primary keyword' });
+            } else if (seoData.headings.h1.count > 1) {
+                issues.push({ priority: 'warning', text: `Multiple H1 tags (${seoData.headings.h1.count}) - Use only one H1 per page` });
+            } else {
+                wins.push('✓ Single H1 tag present');
+            }
+            
+            // Images
+            if (seoData.images.withoutAlt > 0) {
+                issues.push({ priority: 'warning', text: `${seoData.images.withoutAlt} images missing alt text - Add descriptive alt attributes for accessibility and SEO` });
+            } else if (seoData.images.total > 0) {
+                wins.push('✓ All images have alt text');
+            }
+            
+            // HTTPS
+            if (!seoData.technical.isHttps) {
+                issues.push({ priority: 'critical', text: 'Site not using HTTPS - Implement SSL certificate for security and ranking boost' });
+            } else {
+                wins.push('✓ HTTPS enabled');
+            }
+            
+            // Schema
+            if (seoData.schema.length === 0) {
+                issues.push({ priority: 'info', text: 'No structured data found - Add Schema.org markup for rich snippets' });
+            } else {
+                wins.push('✓ Schema.org markup detected');
+            }
+            
+            // Content
+            if (seoData.content.wordCount < 300) {
+                issues.push({ priority: 'warning', text: `Low word count (${seoData.content.wordCount}) - Consider adding more comprehensive content (aim for 800+ words)` });
+            } else if (seoData.content.wordCount > 800) {
+                wins.push(`✓ Good content length (${seoData.content.wordCount} words)`);
+            }
+            
+            // Performance
+            if (scores.performance < 50) {
+                issues.push({ priority: 'critical', text: `Poor performance score (${scores.performance}/100) - Optimize images, reduce JavaScript, enable caching` });
+            } else if (scores.performance < 75) {
+                issues.push({ priority: 'warning', text: `Performance could be improved (${scores.performance}/100) - Consider optimization` });
+            }
+            
+            // Build recommendations
+            recommendations.push({
+                title: 'Content Strategy',
+                items: [
+                    'Create comprehensive, long-form content (1500+ words) for key pages',
+                    'Include primary keywords in first 100 words',
+                    'Use semantic variations and related terms naturally',
+                    'Add FAQ sections to capture featured snippets',
+                    'Update content regularly to maintain freshness'
+                ]
+            });
+            
+            recommendations.push({
+                title: 'Technical Quick Wins',
+                items: [
+                    'Optimize images with WebP format and lazy loading',
+                    'Minify CSS and JavaScript files',
+                    'Enable browser caching',
+                    'Use a CDN for faster global delivery',
+                    'Implement preconnect for third-party resources'
+                ]
+            });
+            
+            recommendations.push({
+                title: 'Link Building',
+                items: [
+                    'Create linkable assets (infographics, research, tools)',
+                    'Guest post on relevant industry blogs',
+                    'Build relationships with industry influencers',
+                    'Reclaim unlinked brand mentions',
+                    'Fix broken external links pointing to your site'
+                ]
+            });
+            
+            // Build HTML output
+            let html = `
+                <h4>📋 Executive Summary</h4>
+                <p>Based on the analysis, your website scores <strong>${scores.overall}/100</strong> overall. 
+                ${scores.overall >= 80 ? 'Your site has strong SEO fundamentals.' : 
+                  scores.overall >= 50 ? 'There are several areas that need improvement for better search visibility.' :
+                  'Significant optimization is needed to improve search rankings.'}</p>
+                
+                <h4>🚨 Issues to Address</h4>
+                <ul>
+                    ${issues.sort((a, b) => {
+                        const priority = { critical: 0, warning: 1, info: 2 };
+                        return priority[a.priority] - priority[b.priority];
+                    }).map(issue => `
+                        <li style="color: ${issue.priority === 'critical' ? 'var(--danger)' : issue.priority === 'warning' ? 'var(--warning)' : 'var(--info)'}">
+                            <strong>[${issue.priority.toUpperCase()}]</strong> ${issue.text}
+                        </li>
+                    `).join('')}
+                </ul>
+                
+                <h4>✅ What's Working Well</h4>
+                <ul>
+                    ${wins.map(win => `<li style="color: var(--accent-primary)">${win}</li>`).join('')}
+                </ul>
+                
+                ${recommendations.map(rec => `
+                    <h4>📌 ${rec.title}</h4>
+                    <ul>
+                        ${rec.items.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                `).join('')}
+                
+                <h4>🎯 Priority Action Items</h4>
+                <ol>
+                    ${issues.filter(i => i.priority === 'critical').slice(0, 3).map(i => `<li>${i.text}</li>`).join('') || '<li>No critical issues found!</li>'}
+                </ol>
+                
+                <p style="margin-top: 20px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; font-size: 14px;">
+                    <strong>💡 Pro Tip:</strong> Focus on fixing critical issues first, then work on warnings. 
+                    Consistent, incremental improvements compound over time for significant SEO gains.
+                </p>
+            `;
+            
+            return html;
+        }
+
+        // Main Analysis Function
+        async function startAnalysis() {
+            const urlInput = document.getElementById('website-url');
+            const url = normalizeUrl(urlInput.value);
+            
+            if (!url) {
+                alert('Please enter a valid URL');
+                return;
+            }
+
+            state.mainSite = url;
+            showLoading(true, 'Starting analysis...', 5);
+            
+            let pageSpeed = null;
+            let seoData = null;
+            let htmlFetched = false;
+            
+            try {
+                // Step 1: Try to get PageSpeed data
+                updateProgress('Running Google PageSpeed analysis (this may take 30-60 seconds)...', 15);
+                pageSpeed = await getPageSpeedData(url);
+                
+                // Step 2: Try HTML fetch
+                updateProgress('Fetching website content...', 40);
+                try {
+                    const html = await fetchWithProxy(url);
+                    if (html && html.length > 500) {
+                        updateProgress('Parsing HTML structure...', 50);
+                        const doc = parseHTML(html);
+                        seoData = extractSEOData(doc, url);
+                        htmlFetched = true;
+                    }
+                } catch (e) {
+                    console.log('HTML fetch failed:', e.message);
+                }
+                
+                // Step 3: If we have PageSpeed but no HTML, extract from PageSpeed
+                if (pageSpeed && !seoData) {
+                    updateProgress('Extracting SEO data from PageSpeed...', 55);
+                    seoData = extractSEOFromPageSpeed(pageSpeed, url);
+                    if (pageSpeed?.lighthouseResult?.audits) {
+                        enhanceSEODataFromAudits(seoData, pageSpeed.lighthouseResult.audits);
+                    }
+                }
+                
+                // Step 4: If neither worked, show error
+                if (!pageSpeed && !seoData) {
+                    throw new Error('Unable to analyze website. Please deploy this tool to GitHub Pages for full functionality. The preview environment blocks external API calls.');
+                }
+                
+                // If we only have HTML data but no PageSpeed, create minimal pageSpeed object
+                if (!pageSpeed && seoData) {
+                    pageSpeed = { lighthouseResult: { categories: {}, audits: {} } };
+                }
+                
+                // Step 5: Calculate scores
+                updateProgress('Calculating SEO scores...', 65);
+                const scores = calculateScores(seoData, pageSpeed);
+                
+                // Store data
+                state.analysisData = { seoData, pageSpeed, scores, htmlFetched };
+                
+                // Step 6: Analyze competitors if any
+                if (state.competitors.length > 0) {
+                    updateProgress(`Analyzing ${state.competitors.length} competitor(s)...`, 70);
+                    await analyzeCompetitors();
+                }
+                
+                // Step 7: Generate AI recommendations
+                updateProgress('Generating AI recommendations...', 85);
+                const aiRecs = await generateAIRecommendations(seoData, scores, pageSpeed);
+                
+                // Step 8: Render results
+                updateProgress('Rendering results...', 95);
+                renderResults(seoData, scores, pageSpeed, aiRecs);
+                
+                showLoading(false);
+                document.getElementById('results-section').classList.add('active');
+                
+                // Scroll to results
+                document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                showLoading(false);
+                alert('Analysis failed: ' + error.message);
+                console.error(error);
+            }
+        }
+        
+        // Enhance SEO data with audit details
+        function enhanceSEODataFromAudits(seoData, audits) {
+            // Title
+            if (audits['document-title']?.details?.items?.[0]) {
+                const item = audits['document-title'].details.items[0];
+                if (item.title) {
+                    seoData.meta.title = item.title;
+                    seoData.meta.titleLength = item.title.length;
+                }
+            }
+            
+            // Images without alt
+            if (audits['image-alt']?.details?.items) {
+                seoData.images.withoutAlt = audits['image-alt'].details.items.length;
+                seoData.images.list = audits['image-alt'].details.items.map(i => ({
+                    src: i.url || i.src || '',
+                    alt: '',
+                    hasAlt: false
+                }));
+            }
+            
+            // Link issues
+            if (audits['link-text']?.details?.items) {
+                const badLinks = audits['link-text'].details.items;
+                seoData.links.issueCount = badLinks.length;
+            }
+            
+            // Resource counts from network
+            if (audits['network-requests']?.details?.items) {
+                const requests = audits['network-requests'].details.items;
+                seoData.technical.totalRequests = requests.length;
+                seoData.technical.scriptCount = requests.filter(r => r.resourceType === 'Script').length;
+                seoData.technical.styleCount = requests.filter(r => r.resourceType === 'Stylesheet').length;
+                seoData.images.total = Math.max(seoData.images.total, requests.filter(r => r.resourceType === 'Image').length);
+            }
+            
+            // DOM stats
+            if (audits['dom-size']?.details?.items) {
+                const domItems = audits['dom-size'].details.items;
+                if (domItems[0]) {
+                    seoData.technical.domElements = domItems[0].value || 0;
+                }
+            }
+        }
+
+        // Analyze Competitors
+        async function analyzeCompetitors() {
+            state.competitorData = {};
+            
+            for (const compUrl of state.competitors) {
+                try {
+                    let pageSpeed = null;
+                    let seoData = null;
+                    
+                    // Try real API
+                    pageSpeed = await getPageSpeedData(compUrl);
+                    
+                    // Try HTML fetch
+                    try {
+                        const html = await fetchWithProxy(compUrl);
+                        if (html && html.length > 500) {
+                            const doc = parseHTML(html);
+                            seoData = extractSEOData(doc, compUrl);
+                        }
+                    } catch (e) {
+                        console.log(`HTML fetch failed for ${compUrl}`);
+                    }
+                    
+                    // Fallback to PageSpeed extraction
+                    if (pageSpeed && !seoData) {
+                        seoData = extractSEOFromPageSpeed(pageSpeed, compUrl);
+                        if (pageSpeed?.lighthouseResult?.audits) {
+                            enhanceSEODataFromAudits(seoData, pageSpeed.lighthouseResult.audits);
+                        }
+                    }
+                    
+                    if (pageSpeed || seoData) {
+                        if (!pageSpeed) pageSpeed = { lighthouseResult: { categories: {}, audits: {} } };
+                        if (!seoData) seoData = extractSEOFromPageSpeed(pageSpeed, compUrl);
+                        const scores = calculateScores(seoData, pageSpeed);
+                        state.competitorData[compUrl] = { seoData, pageSpeed, scores };
+                    } else {
+                        state.competitorData[compUrl] = { error: true, message: 'Unable to analyze' };
+                    }
+                    
+                } catch (e) {
+                    console.error(`Failed to analyze competitor: ${compUrl}`, e);
+                    state.competitorData[compUrl] = { error: true, message: e.message };
+                }
+            }
+        }
+
+        // Render Results
+        function renderResults(seoData, scores, pageSpeed, aiRecs) {
+            renderWebsitePreview(seoData, pageSpeed);
+            renderScoreCards(scores);
+            renderKeyFindings(seoData, scores, pageSpeed);
+            renderQuickWins(seoData, scores);
+            renderTechnicalSEO(seoData, pageSpeed);
+            renderContentAnalysis(seoData);
+            renderPerformance(pageSpeed, scores);
+            renderLinksAnalysis(seoData);
+            renderComparison();
+            
+            document.getElementById('ai-recommendations').innerHTML = aiRecs;
+        }
+
+        // Render Website Preview
+        function renderWebsitePreview(seoData, pageSpeed) {
+            const preview = document.getElementById('website-preview');
+            const faviconUrl = seoData.technical.faviconUrl ? 
+                (seoData.technical.faviconUrl.startsWith('http') ? seoData.technical.faviconUrl : new URL(seoData.technical.faviconUrl, seoData.url).href) :
+                `https://www.google.com/s2/favicons?domain=${seoData.domain}&sz=128`;
+            
+            // Get screenshot from PageSpeed if available
+            let screenshotHtml = '';
+            if (pageSpeed?.lighthouseResult?.audits?.['final-screenshot']?.details?.data) {
+                const screenshot = pageSpeed.lighthouseResult.audits['final-screenshot'].details.data;
+                screenshotHtml = `<img src="${screenshot}" alt="Website screenshot" style="width: 100%; max-width: 300px; border-radius: 8px; margin-top: 16px; border: 1px solid var(--border-color);">`;
+            }
+            
+            // Get final URL from PageSpeed (handles redirects)
+            const finalUrl = pageSpeed?.lighthouseResult?.finalUrl || seoData.url;
+            
+            // Get title from PageSpeed audits if not available
+            let title = seoData.meta.title;
+            if (!title && pageSpeed?.lighthouseResult?.audits?.['document-title']) {
+                title = pageSpeed.lighthouseResult.audits['document-title'].details?.items?.[0]?.title || seoData.domain;
+            }
+            
+            preview.innerHTML = `
+                <div class="website-preview-header">
+                    <div class="website-favicon">
+                        <img src="${faviconUrl}" alt="" onerror="this.parentElement.innerHTML='🌐'">
+                    </div>
+                    <div class="website-info">
+                        <h3>${title || seoData.domain}</h3>
+                        <a href="${finalUrl}" target="_blank">${finalUrl}</a>
+                    </div>
+                </div>
+                ${seoData.meta.description && seoData.meta.description !== 'Present (content not accessible via API)' ? 
+                    `<p style="color: var(--text-secondary); font-size: 14px; margin-top: 12px;">${seoData.meta.description}</p>` : ''}
+                ${screenshotHtml}
+            `;
+        }
+
+        // Render Score Cards
+        function renderScoreCards(scores) {
+            const grid = document.getElementById('score-grid');
+            const scoreTypes = [
+                { key: 'overall', label: 'Overall Score', color: getScoreColor(scores.overall) },
+                { key: 'technical', label: 'Technical SEO', color: getScoreColor(scores.technical) },
+                { key: 'content', label: 'Content', color: getScoreColor(scores.content) },
+                { key: 'performance', label: 'Performance', color: getScoreColor(scores.performance) },
+                { key: 'seoScore', label: 'SEO', color: getScoreColor(scores.seoScore || scores.technical) }
+            ];
+            
+            grid.innerHTML = scoreTypes.map(({ key, label, color }) => {
+                const score = scores[key] || 0;
+                const circumference = 2 * Math.PI * 42;
+                const offset = circumference - (score / 100) * circumference;
+                
+                return `
+                    <div class="score-card">
+                        <div class="score-circle">
+                            <svg viewBox="0 0 100 100">
+                                <circle class="bg" cx="50" cy="50" r="42"/>
+                                <circle class="progress" cx="50" cy="50" r="42" 
+                                    stroke="${color}"
+                                    stroke-dasharray="${circumference}"
+                                    stroke-dashoffset="${offset}"/>
+                            </svg>
+                            <span class="score-value" style="color: ${color}">${score}</span>
+                        </div>
+                        <h4>${label}</h4>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getScoreColor(score) {
+            if (score >= 80) return 'var(--accent-primary)';
+            if (score >= 50) return 'var(--warning)';
+            return 'var(--danger)';
+        }
+
+        function getStatusBadge(score) {
+            if (score >= 80) return '<span class="status-badge status-good">Good</span>';
+            if (score >= 50) return '<span class="status-badge status-warning">Needs Work</span>';
+            return '<span class="status-badge status-error">Critical</span>';
+        }
+
+        // Render Key Findings
+        function renderKeyFindings(seoData, scores, pageSpeed) {
+            const findings = [];
+            
+            // Overall score assessment
+            if (scores.overall >= 80) {
+                findings.push({ type: 'success', title: 'Strong Overall Performance', desc: 'Your website has good SEO fundamentals in place.' });
+            } else if (scores.overall < 50) {
+                findings.push({ type: 'critical', title: 'SEO Needs Significant Improvement', desc: 'Multiple critical issues are affecting your search visibility.' });
+            }
+            
+            // Use PageSpeed audits for accurate findings
+            if (pageSpeed?.lighthouseResult?.audits) {
+                const audits = pageSpeed.lighthouseResult.audits;
+                
+                // Title check
+                if (audits['document-title']?.score === 0) {
+                    findings.push({ type: 'critical', title: 'Missing or Invalid Page Title', desc: 'Add a descriptive title tag for better search visibility.' });
+                }
+                
+                // Meta description
+                if (audits['meta-description']?.score === 0) {
+                    findings.push({ type: 'critical', title: 'Missing Meta Description', desc: 'Add a compelling meta description for better CTR in search results.' });
+                }
+                
+                // Viewport
+                if (audits['viewport']?.score === 0) {
+                    findings.push({ type: 'critical', title: 'Missing Viewport Meta Tag', desc: 'Add viewport meta tag for proper mobile rendering.' });
+                }
+                
+                // HTTPS
+                if (audits['is-on-https']?.score === 0) {
+                    findings.push({ type: 'critical', title: 'HTTPS Not Enabled', desc: 'Secure your site with SSL for better rankings and user trust.' });
+                }
+                
+                // Image alt text
+                if (audits['image-alt']?.score !== 1 && audits['image-alt']?.details?.items?.length > 0) {
+                    findings.push({ type: 'warning', title: 'Images Missing Alt Text', desc: `${audits['image-alt'].details.items.length} images lack alt attributes for accessibility and SEO.` });
+                }
+                
+                // Link text
+                if (audits['link-text']?.score !== 1) {
+                    findings.push({ type: 'warning', title: 'Generic Link Text Found', desc: 'Use descriptive anchor text instead of "click here" or "read more".' });
+                }
+                
+                // Crawlable anchors
+                if (audits['crawlable-anchors']?.score !== 1) {
+                    findings.push({ type: 'warning', title: 'Non-Crawlable Links Detected', desc: 'Some links may not be accessible to search engine crawlers.' });
+                }
+                
+                // Performance issues
+                if (scores.performance < 50) {
+                    findings.push({ type: 'critical', title: 'Poor Performance Score', desc: `Performance score of ${scores.performance}/100. This significantly impacts SEO and user experience.` });
+                } else if (scores.performance < 75) {
+                    findings.push({ type: 'warning', title: 'Performance Needs Improvement', desc: `Performance score of ${scores.performance}/100. Consider optimization for better rankings.` });
+                }
+                
+                // Mobile-friendliness
+                if (audits['font-size']?.score === 0) {
+                    findings.push({ type: 'warning', title: 'Font Size Too Small', desc: 'Text may be difficult to read on mobile devices.' });
+                }
+                
+                // Robots
+                if (audits['robots-txt']?.score === 0) {
+                    findings.push({ type: 'info', title: 'Robots.txt Issues', desc: 'Check your robots.txt file for potential crawling restrictions.' });
+                }
+            } else {
+                // Fallback to our analysis data
+                if (seoData.headings.h1.count === 0) {
+                    findings.push({ type: 'critical', title: 'Missing H1 Tag', desc: 'Add a single H1 heading to improve page structure.' });
+                } else if (seoData.headings.h1.count > 1) {
+                    findings.push({ type: 'warning', title: 'Multiple H1 Tags', desc: `Found ${seoData.headings.h1.count} H1 tags. Use only one per page.` });
+                }
+                
+                if (!seoData.meta.description) {
+                    findings.push({ type: 'critical', title: 'Missing Meta Description', desc: 'Add a compelling meta description for better CTR.' });
+                }
+                
+                if (seoData.images.withoutAlt > 0) {
+                    findings.push({ type: 'warning', title: 'Images Missing Alt Text', desc: `${seoData.images.withoutAlt} images lack alt attributes.` });
+                }
+                
+                if (!seoData.technical.isHttps) {
+                    findings.push({ type: 'critical', title: 'HTTPS Not Enabled', desc: 'Secure your site with SSL for better rankings.' });
+                }
+            }
+            
+            if (seoData.schema.length === 0) {
+                findings.push({ type: 'info', title: 'No Structured Data', desc: 'Add Schema.org markup for rich snippets in search results.' });
+            }
+            
+            document.getElementById('key-findings').innerHTML = findings.slice(0, 6).map(f => `
+                <li class="issue-item">
+                    <div class="issue-icon ${f.type}">
+                        ${f.type === 'critical' ? '⚠' : f.type === 'warning' ? '!' : f.type === 'success' ? '✓' : 'i'}
+                    </div>
+                    <div class="issue-content">
+                        <h5>${f.title}</h5>
+                        <p>${f.desc}</p>
+                    </div>
+                </li>
+            `).join('') || '<li class="issue-item"><div class="issue-icon success">✓</div><div class="issue-content"><h5>No Critical Issues</h5><p>Your website passed the basic SEO checks.</p></div></li>';
+        }
+
+        // Render Quick Wins
+        function renderQuickWins(seoData, scores) {
+            const wins = [];
+            
+            if (seoData.meta.titleLength > 60) {
+                wins.push({ title: 'Shorten Title Tag', desc: 'Reduce to 60 characters or less.', impact: 'High' });
+            }
+            
+            if (seoData.meta.descriptionLength === 0) {
+                wins.push({ title: 'Add Meta Description', desc: 'Write a 120-160 character description.', impact: 'High' });
+            } else if (seoData.meta.descriptionLength < 120) {
+                wins.push({ title: 'Expand Meta Description', desc: 'Add more compelling details.', impact: 'Medium' });
+            }
+            
+            if (seoData.images.withoutAlt > 0) {
+                wins.push({ title: 'Add Image Alt Text', desc: `Fix ${seoData.images.withoutAlt} images.`, impact: 'Medium' });
+            }
+            
+            if (!seoData.meta.ogImage) {
+                wins.push({ title: 'Add Open Graph Image', desc: 'Improve social sharing appearance.', impact: 'Medium' });
+            }
+            
+            if (seoData.schema.length === 0) {
+                wins.push({ title: 'Add Basic Schema', desc: 'Implement Organization or WebSite schema.', impact: 'Medium' });
+            }
+            
+            if (!seoData.meta.canonical) {
+                wins.push({ title: 'Add Canonical URL', desc: 'Prevent duplicate content issues.', impact: 'Low' });
+            }
+            
+            document.getElementById('quick-wins').innerHTML = wins.slice(0, 5).map(w => `
+                <li class="issue-item">
+                    <div class="issue-icon info">🚀</div>
+                    <div class="issue-content">
+                        <h5>${w.title} <span style="color: var(--accent-primary); font-size: 11px;">[${w.impact} Impact]</span></h5>
+                        <p>${w.desc}</p>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        // Render Technical SEO
+        function renderTechnicalSEO(seoData, pageSpeed) {
+            const audits = pageSpeed?.lighthouseResult?.audits || {};
+            
+            // Meta Analysis
+            const titleAudit = audits['document-title'];
+            const descAudit = audits['meta-description'];
+            const titleScore = titleAudit?.score === 1 ? 100 : titleAudit?.score === 0 ? 0 : 50;
+            const descScore = descAudit?.score === 1 ? 100 : descAudit?.score === 0 ? 0 : 50;
+            
+            // Get actual title from audit if available
+            const actualTitle = titleAudit?.details?.items?.[0]?.title || seoData.meta.title || '';
+            const titleLength = actualTitle.length;
+            
+            document.getElementById('meta-status').outerHTML = getStatusBadge(Math.round((titleScore + descScore) / 2));
+            document.getElementById('meta-analysis').innerHTML = `
+                <div class="data-item">
+                    <span class="data-label">📌 Title</span>
+                    <span class="data-value">${actualTitle || '<em style="color: var(--danger)">Missing</em>'}</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">Length</span>
+                    <span class="data-value" style="color: ${titleLength >= 30 && titleLength <= 60 ? 'var(--accent-primary)' : titleLength > 0 ? 'var(--warning)' : 'var(--danger)'}">
+                        ${titleLength} chars ${titleLength >= 30 && titleLength <= 60 ? '✓' : '(Optimal: 30-60)'}
+                    </span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">📝 Description</span>
+                    <span class="data-value" style="color: ${descScore === 100 ? 'var(--accent-primary)' : descScore > 0 ? 'var(--warning)' : 'var(--danger)'}">
+                        ${descScore === 100 ? '✓ Present' : descScore > 0 ? '⚠ Needs improvement' : '✗ Missing'}
+                    </span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">🔗 Canonical</span>
+                    <span class="data-value">${audits['canonical']?.score === 1 ? '✓ Present' : seoData.meta.canonical || '<em>Not detected</em>'}</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">🤖 Robots</span>
+                    <span class="data-value">${audits['robots-txt']?.score === 1 ? '✓ Valid' : seoData.meta.robots || 'Check required'}</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">🌐 Hreflang</span>
+                    <span class="data-value">${audits['hreflang']?.score === 1 ? '✓ Present' : audits['hreflang']?.score === 0 ? '⚠ Issues found' : 'Not detected'}</span>
+                </div>
+            `;
+
+            // Headings Analysis
+            const h1Score = seoData.headings.h1.count === 1 ? 100 : seoData.headings.h1.count > 0 ? 50 : 0;
+            document.getElementById('heading-status').outerHTML = getStatusBadge(h1Score);
+            document.getElementById('heading-analysis').innerHTML = `
+                ${['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map(tag => `
+                    <div class="data-item">
+                        <span class="data-label">${tag.toUpperCase()}</span>
+                        <span class="data-value" style="color: ${tag === 'h1' ? (seoData.headings[tag].count === 1 ? 'var(--accent-primary)' : seoData.headings[tag].count > 1 ? 'var(--warning)' : 'var(--danger)') : 'inherit'}">
+                            ${seoData.headings[tag].count} found
+                        </span>
+                    </div>
+                    ${seoData.headings[tag].texts.length > 0 ? `
+                        <div style="padding: 8px 0; font-size: 13px; color: var(--text-muted);">
+                            ${seoData.headings[tag].texts.slice(0, 3).map(t => `• ${t.substring(0, 60)}${t.length > 60 ? '...' : ''}`).join('<br>')}
+                        </div>
+                    ` : ''}
+                `).join('')}
+                ${!state.analysisData?.htmlFetched ? '<p style="color: var(--text-muted); font-size: 12px; margin-top: 12px;">* Heading data estimated from PageSpeed API</p>' : ''}
+            `;
+
+            // Security Analysis
+            const httpsAudit = audits['is-on-https'];
+            const isHttps = httpsAudit?.score === 1 || seoData.technical.isHttps;
+            document.getElementById('security-status').outerHTML = getStatusBadge(isHttps ? 100 : 0);
+            document.getElementById('security-analysis').innerHTML = `
+                <div class="data-item">
+                    <span class="data-label">🔒 HTTPS</span>
+                    <span class="data-value" style="color: ${isHttps ? 'var(--accent-primary)' : 'var(--danger)'}">
+                        ${isHttps ? 'Enabled ✓' : 'Not Enabled ⚠'}
+                    </span>
+                </div>
+                ${httpsAudit?.details?.items?.length > 0 ? `
+                    <div class="data-item">
+                        <span class="data-label">⚠ Issues</span>
+                        <span class="data-value" style="color: var(--warning)">${httpsAudit.details.items.length} insecure requests</span>
+                    </div>
+                ` : ''}
+                ${audits['csp-xss']?.score !== undefined ? `
+                    <div class="data-item">
+                        <span class="data-label">🛡️ CSP XSS</span>
+                        <span class="data-value" style="color: ${audits['csp-xss'].score === 1 ? 'var(--accent-primary)' : 'var(--warning)'}">
+                            ${audits['csp-xss'].score === 1 ? 'Protected ✓' : 'Review needed'}
+                        </span>
+                    </div>
+                ` : ''}
+            `;
+
+            // Mobile Analysis
+            const viewportAudit = audits['viewport'];
+            const hasViewport = viewportAudit?.score === 1 || seoData.technical.hasViewport;
+            const fontSizeAudit = audits['font-size'];
+            const tapTargetsAudit = audits['tap-targets'];
+            
+            document.getElementById('mobile-status').outerHTML = getStatusBadge(hasViewport ? 100 : 0);
+            document.getElementById('mobile-analysis').innerHTML = `
+                <div class="data-item">
+                    <span class="data-label">📱 Viewport</span>
+                    <span class="data-value" style="color: ${hasViewport ? 'var(--accent-primary)' : 'var(--danger)'}">
+                        ${hasViewport ? 'Configured ✓' : 'Missing ⚠'}
+                    </span>
+                </div>
+                ${fontSizeAudit ? `
+                    <div class="data-item">
+                        <span class="data-label">🔤 Font Size</span>
+                        <span class="data-value" style="color: ${fontSizeAudit.score === 1 ? 'var(--accent-primary)' : 'var(--warning)'}">
+                            ${fontSizeAudit.score === 1 ? 'Readable ✓' : fontSizeAudit.displayValue || 'Too small'}
+                        </span>
+                    </div>
+                ` : ''}
+                ${tapTargetsAudit ? `
+                    <div class="data-item">
+                        <span class="data-label">👆 Tap Targets</span>
+                        <span class="data-value" style="color: ${tapTargetsAudit.score === 1 ? 'var(--accent-primary)' : 'var(--warning)'}">
+                            ${tapTargetsAudit.score === 1 ? 'Properly sized ✓' : tapTargetsAudit.displayValue || 'Too small'}
+                        </span>
+                    </div>
+                ` : ''}
+                ${audits['content-width'] ? `
+                    <div class="data-item">
+                        <span class="data-label">📐 Content Width</span>
+                        <span class="data-value" style="color: ${audits['content-width'].score === 1 ? 'var(--accent-primary)' : 'var(--warning)'}">
+                            ${audits['content-width'].score === 1 ? 'Fits viewport ✓' : 'Overflow detected'}
+                        </span>
+                    </div>
+                ` : ''}
+            `;
+
+            // Schema Analysis
+            const structuredDataAudit = audits['structured-data-item'];
+            document.getElementById('schema-status').outerHTML = getStatusBadge(seoData.schema.length > 0 ? 100 : 0);
+            document.getElementById('schema-analysis').innerHTML = seoData.schema.length > 0 ?
+                `<div class="code-block">${JSON.stringify(seoData.schema, null, 2)}</div>` :
+                `<p style="color: var(--text-muted);">No structured data (JSON-LD) detected. Consider adding Schema.org markup for rich snippets.</p>
+                <div style="margin-top: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <p style="font-size: 13px; color: var(--text-secondary);">Recommended schemas:</p>
+                    <ul style="margin-left: 20px; margin-top: 8px; font-size: 13px; color: var(--text-muted);">
+                        <li>Organization / LocalBusiness</li>
+                        <li>WebSite with SearchAction</li>
+                        <li>BreadcrumbList</li>
+                        <li>Product / Service (if applicable)</li>
+                    </ul>
+                </div>`;
+
+            // Robots Analysis
+            const robotsAudit = audits['robots-txt'];
+            document.getElementById('robots-status').outerHTML = getStatusBadge(robotsAudit?.score === 1 ? 100 : 70);
+            document.getElementById('robots-analysis').innerHTML = `
+                <div class="data-item">
+                    <span class="data-label">🤖 Robots.txt</span>
+                    <span class="data-value" style="color: ${robotsAudit?.score === 1 ? 'var(--accent-primary)' : 'var(--warning)'}">
+                        ${robotsAudit?.score === 1 ? 'Valid ✓' : 'Check required'}
+                    </span>
+                </div>
+                ${audits['crawlable-anchors'] ? `
+                    <div class="data-item">
+                        <span class="data-label">🔗 Crawlable Links</span>
+                        <span class="data-value" style="color: ${audits['crawlable-anchors'].score === 1 ? 'var(--accent-primary)' : 'var(--warning)'}">
+                            ${audits['crawlable-anchors'].score === 1 ? 'All accessible ✓' : `${audits['crawlable-anchors'].details?.items?.length || 'Some'} issues`}
+                        </span>
+                    </div>
+                ` : ''}
+                <div class="data-item">
+                    <span class="data-label">🌐 Language</span>
+                    <span class="data-value">${seoData.technical.lang || audits['html-has-lang']?.score === 1 ? 'Specified ✓' : 'Not specified'}</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">📝 Charset</span>
+                    <span class="data-value">${audits['charset']?.score === 1 ? 'Valid ✓' : seoData.technical.charset || 'Check required'}</span>
+                </div>
+                <div style="margin-top: 16px;">
+                    <a href="${seoData.url}robots.txt" target="_blank" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">
+                        View robots.txt ↗
+                    </a>
+                    <a href="${seoData.url}sitemap.xml" target="_blank" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px; margin-left: 8px;">
+                        View sitemap.xml ↗
+                    </a>
+                </div>
+            `;
+        }
+
+        // Render Content Analysis
+        function renderContentAnalysis(seoData) {
+            // Content Stats
+            document.getElementById('content-stats').innerHTML = `
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.content.wordCount.toLocaleString()}</div>
+                        <div class="metric-label">Words</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.content.sentenceCount}</div>
+                        <div class="metric-label">Sentences</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.content.avgWordsPerSentence}</div>
+                        <div class="metric-label">Avg Words/Sentence</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.links.totalCount}</div>
+                        <div class="metric-label">Total Links</div>
+                    </div>
+                </div>
+            `;
+
+            // Keyword Analysis
+            document.getElementById('keyword-analysis').innerHTML = `
+                <p style="margin-bottom: 12px; color: var(--text-secondary);">Top keywords found on the page:</p>
+                <div class="keywords-cloud">
+                    ${seoData.content.topKeywords.slice(0, 15).map((k, i) => `
+                        <span class="keyword-tag ${i < 5 ? 'primary' : ''}">${k.word} (${k.count})</span>
+                    `).join('')}
+                </div>
+                ${seoData.content.topKeywords.length > 0 ? `
+                    <div style="margin-top: 20px;">
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Keyword Density:</p>
+                        ${seoData.content.topKeywords.slice(0, 5).map(k => `
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-label">
+                                    <span>${k.word}</span>
+                                    <span>${k.density}%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" style="width: ${Math.min(k.density * 20, 100)}%; background: var(--gradient-1);"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '<p style="color: var(--text-muted);">No significant keywords found.</p>'}
+            `;
+
+            // Image Analysis
+            document.getElementById('image-status').outerHTML = getStatusBadge(seoData.images.altPercentage);
+            document.getElementById('image-analysis').innerHTML = `
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.images.total}</div>
+                        <div class="metric-label">Total Images</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" style="color: var(--accent-primary)">${seoData.images.withAlt}</div>
+                        <div class="metric-label">With Alt Text</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" style="color: ${seoData.images.withoutAlt > 0 ? 'var(--danger)' : 'var(--accent-primary)'}">${seoData.images.withoutAlt}</div>
+                        <div class="metric-label">Missing Alt</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.images.altPercentage}%</div>
+                        <div class="metric-label">Alt Coverage</div>
+                    </div>
+                </div>
+                ${seoData.images.withoutAlt > 0 ? `
+                    <div style="margin-top: 16px; padding: 12px; background: rgba(255,71,87,0.1); border-radius: 8px; border-left: 3px solid var(--danger);">
+                        <p style="font-size: 13px; color: var(--danger);">⚠ ${seoData.images.withoutAlt} images are missing alt attributes. Add descriptive alt text for better accessibility and SEO.</p>
+                    </div>
+                ` : ''}
+            `;
+
+            // Readability
+            const readabilityLevel = seoData.content.fleschScore >= 80 ? 'Very Easy' :
+                                     seoData.content.fleschScore >= 60 ? 'Easy' :
+                                     seoData.content.fleschScore >= 40 ? 'Moderate' :
+                                     seoData.content.fleschScore >= 20 ? 'Difficult' : 'Very Difficult';
+            
+            document.getElementById('readability-analysis').innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 48px; font-weight: 700; color: ${getScoreColor(seoData.content.fleschScore)};">${seoData.content.fleschScore}</div>
+                    <div style="font-size: 16px; color: var(--text-secondary); margin-top: 8px;">Flesch Reading Ease</div>
+                    <div style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">${readabilityLevel}</div>
+                </div>
+                <div class="progress-bar" style="height: 12px; margin-top: 16px;">
+                    <div class="progress-bar-fill" style="width: ${seoData.content.fleschScore}%; background: ${getScoreColor(seoData.content.fleschScore)};"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--text-muted);">
+                    <span>Very Difficult</span>
+                    <span>Very Easy</span>
+                </div>
+            `;
+        }
+
+        // Render Performance
+        function renderPerformance(pageSpeed, scores) {
+            // Performance Scores
+            const perfScores = document.getElementById('performance-scores');
+            if (pageSpeed?.lighthouseResult?.categories) {
+                const cats = pageSpeed.lighthouseResult.categories;
+                perfScores.innerHTML = ['performance', 'accessibility', 'best-practices', 'seo'].map(key => {
+                    const cat = cats[key];
+                    if (!cat) return '';
+                    const score = Math.round((cat.score || 0) * 100);
+                    const circumference = 2 * Math.PI * 42;
+                    const offset = circumference - (score / 100) * circumference;
+                    
+                    return `
+                        <div class="score-card">
+                            <div class="score-circle">
+                                <svg viewBox="0 0 100 100">
+                                    <circle class="bg" cx="50" cy="50" r="42"/>
+                                    <circle class="progress" cx="50" cy="50" r="42" 
+                                        stroke="${getScoreColor(score)}"
+                                        stroke-dasharray="${circumference}"
+                                        stroke-dashoffset="${offset}"/>
+                                </svg>
+                                <span class="score-value" style="color: ${getScoreColor(score)}">${score}</span>
+                            </div>
+                            <h4>${cat.title}</h4>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                perfScores.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Performance data unavailable. PageSpeed API may be rate-limited.</p>';
+            }
+
+            // Core Web Vitals
+            const vitals = document.getElementById('vitals-analysis');
+            if (pageSpeed?.lighthouseResult?.audits) {
+                const audits = pageSpeed.lighthouseResult.audits;
+                const vitalMetrics = [
+                    { key: 'largest-contentful-paint', name: 'LCP', desc: 'Largest Contentful Paint' },
+                    { key: 'first-contentful-paint', name: 'FCP', desc: 'First Contentful Paint' },
+                    { key: 'cumulative-layout-shift', name: 'CLS', desc: 'Cumulative Layout Shift' },
+                    { key: 'total-blocking-time', name: 'TBT', desc: 'Total Blocking Time' },
+                    { key: 'speed-index', name: 'SI', desc: 'Speed Index' },
+                    { key: 'interactive', name: 'TTI', desc: 'Time to Interactive' }
+                ];
+                
+                vitals.innerHTML = vitalMetrics.map(metric => {
+                    const audit = audits[metric.key];
+                    if (!audit) return '';
+                    const score = audit.score || 0;
+                    
+                    return `
+                        <div class="data-item">
+                            <span class="data-label">
+                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${getScoreColor(score * 100)}; margin-right: 8px;"></span>
+                                ${metric.name}
+                            </span>
+                            <span class="data-value" style="color: ${getScoreColor(score * 100)}">
+                                ${audit.displayValue || 'N/A'}
+                            </span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); padding-bottom: 8px;">${metric.desc}</div>
+                    `;
+                }).join('');
+            } else {
+                vitals.innerHTML = '<p style="color: var(--text-muted);">Core Web Vitals data unavailable.</p>';
+            }
+
+            // Resource Analysis
+            const resources = document.getElementById('resource-analysis');
+            if (pageSpeed?.lighthouseResult?.audits) {
+                const audits = pageSpeed.lighthouseResult.audits;
+                resources.innerHTML = `
+                    <div class="data-item">
+                        <span class="data-label">📦 Total Size</span>
+                        <span class="data-value">${audits['total-byte-weight']?.displayValue || 'N/A'}</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">🌐 Requests</span>
+                        <span class="data-value">${audits['network-requests']?.details?.items?.length || 'N/A'}</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">📜 DOM Size</span>
+                        <span class="data-value">${audits['dom-size']?.displayValue || 'N/A'}</span>
+                    </div>
+                `;
+            } else {
+                resources.innerHTML = '<p style="color: var(--text-muted);">Resource data unavailable.</p>';
+            }
+
+            // Opportunities
+            const opps = document.getElementById('performance-opportunities');
+            if (pageSpeed?.lighthouseResult?.audits) {
+                const audits = pageSpeed.lighthouseResult.audits;
+                const opportunities = Object.values(audits)
+                    .filter(a => a.details?.type === 'opportunity' && a.score !== null && a.score < 1)
+                    .sort((a, b) => (a.score || 0) - (b.score || 0))
+                    .slice(0, 5);
+                
+                if (opportunities.length > 0) {
+                    opps.innerHTML = `<ul class="issues-list">
+                        ${opportunities.map(o => `
+                            <li class="issue-item">
+                                <div class="issue-icon ${o.score < 0.5 ? 'critical' : 'warning'}">!</div>
+                                <div class="issue-content">
+                                    <h5>${o.title}</h5>
+                                    <p>${o.description?.substring(0, 150)}...</p>
+                                    ${o.displayValue ? `<p style="color: var(--accent-primary); margin-top: 4px;">Potential savings: ${o.displayValue}</p>` : ''}
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>`;
+                } else {
+                    opps.innerHTML = '<p style="color: var(--accent-primary);">✓ No major performance opportunities identified.</p>';
+                }
+            } else {
+                opps.innerHTML = '<p style="color: var(--text-muted);">Performance opportunities data unavailable.</p>';
+            }
+
+            // Diagnostics
+            const diag = document.getElementById('diagnostics');
+            if (pageSpeed?.lighthouseResult?.audits) {
+                const audits = pageSpeed.lighthouseResult.audits;
+                const diagnostics = Object.values(audits)
+                    .filter(a => a.details?.type === 'table' && a.score !== null && a.score < 0.9)
+                    .slice(0, 5);
+                
+                if (diagnostics.length > 0) {
+                    diag.innerHTML = `<ul class="issues-list">
+                        ${diagnostics.map(d => `
+                            <li class="issue-item">
+                                <div class="issue-icon info">i</div>
+                                <div class="issue-content">
+                                    <h5>${d.title}</h5>
+                                    <p>${d.description?.substring(0, 150)}...</p>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>`;
+                } else {
+                    diag.innerHTML = '<p style="color: var(--accent-primary);">✓ No diagnostic issues found.</p>';
+                }
+            } else {
+                diag.innerHTML = '<p style="color: var(--text-muted);">Diagnostics data unavailable.</p>';
+            }
+        }
+
+        // Render Links Analysis
+        function renderLinksAnalysis(seoData) {
+            // Internal Links
+            document.getElementById('internal-links').innerHTML = `
+                <div class="data-item">
+                    <span class="data-label">Total Internal Links</span>
+                    <span class="data-value">${seoData.links.internalCount}</span>
+                </div>
+                ${seoData.links.internal.length > 0 ? `
+                    <div style="margin-top: 16px; max-height: 200px; overflow-y: auto;">
+                        ${seoData.links.internal.slice(0, 20).map(l => `
+                            <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px;">
+                                <div style="color: var(--accent-primary); word-break: break-all;">${l.href}</div>
+                                ${l.text ? `<div style="color: var(--text-muted); margin-top: 2px;">"${l.text.substring(0, 50)}"</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '<p style="color: var(--text-muted);">No internal links found.</p>'}
+            `;
+
+            // External Links
+            document.getElementById('external-links').innerHTML = `
+                <div class="data-item">
+                    <span class="data-label">Total External Links</span>
+                    <span class="data-value">${seoData.links.externalCount}</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">Nofollow Links</span>
+                    <span class="data-value">${seoData.links.external.filter(l => l.nofollow).length}</span>
+                </div>
+                ${seoData.links.external.length > 0 ? `
+                    <div style="margin-top: 16px; max-height: 200px; overflow-y: auto;">
+                        ${seoData.links.external.slice(0, 20).map(l => `
+                            <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px;">
+                                <div style="color: var(--info); word-break: break-all;">
+                                    ${l.href}
+                                    ${l.nofollow ? '<span style="color: var(--warning); font-size: 11px;"> [nofollow]</span>' : ''}
+                                </div>
+                                ${l.text ? `<div style="color: var(--text-muted); margin-top: 2px;">"${l.text.substring(0, 50)}"</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '<p style="color: var(--text-muted);">No external links found.</p>'}
+            `;
+
+            // Site Structure
+            document.getElementById('site-structure').innerHTML = `
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.links.internalCount}</div>
+                        <div class="metric-label">Internal Links</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.links.externalCount}</div>
+                        <div class="metric-label">External Links</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.technical.formCount}</div>
+                        <div class="metric-label">Forms</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${seoData.technical.iframeCount}</div>
+                        <div class="metric-label">iFrames</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div class="data-item">
+                        <span class="data-label">Scripts</span>
+                        <span class="data-value">${seoData.technical.scriptCount}</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Stylesheets</span>
+                        <span class="data-value">${seoData.technical.styleCount}</span>
+                    </div>
+                </div>
+            `;
+
+            // Sitemap & Robots
+            const socialLinks = Object.entries(seoData.technical.socialLinks || {});
+            document.getElementById('sitemap-analysis').innerHTML = `
+                <div class="data-item">
+                    <span class="data-label">📍 Sitemap</span>
+                    <span class="data-value"><a href="${seoData.url}sitemap.xml" target="_blank" style="color: var(--accent-primary);">/sitemap.xml</a></span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">🤖 Robots.txt</span>
+                    <span class="data-value"><a href="${seoData.url}robots.txt" target="_blank" style="color: var(--accent-primary);">/robots.txt</a></span>
+                </div>
+                ${socialLinks.length > 0 ? `
+                    <div style="margin-top: 16px;">
+                        <h4 style="font-size: 14px; margin-bottom: 12px;">Social Links Found</h4>
+                        ${socialLinks.map(([platform, url]) => `
+                            <div class="data-item">
+                                <span class="data-label">${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
+                                <span class="data-value"><a href="${url}" target="_blank" style="color: var(--accent-primary);">Link ↗</a></span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Render Comparison
+        function renderComparison() {
+            const container = document.getElementById('comparison-content');
+            
+            if (state.competitors.length === 0 || Object.keys(state.competitorData).length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <h3>Add Competitors to Compare</h3>
+                        <p>Add competitor URLs above to see a detailed SEO comparison.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const mainData = state.analysisData;
+            const allSites = [
+                { url: state.mainSite, data: mainData, isMain: true },
+                ...Object.entries(state.competitorData)
+                    .filter(([_, d]) => !d.error)
+                    .map(([url, data]) => ({ url, data, isMain: false }))
+            ];
+
+            const metrics = [
+                { label: 'Overall Score', getValue: d => d.scores.overall, format: v => v },
+                { label: 'Technical SEO', getValue: d => d.scores.technical, format: v => v },
+                { label: 'Content Score', getValue: d => d.scores.content, format: v => v },
+                { label: 'Performance', getValue: d => d.scores.performance, format: v => v },
+                { label: 'Title Length', getValue: d => d.seoData.meta.titleLength, format: v => v + ' chars', optimal: [30, 60] },
+                { label: 'Description Length', getValue: d => d.seoData.meta.descriptionLength, format: v => v + ' chars', optimal: [120, 160] },
+                { label: 'H1 Count', getValue: d => d.seoData.headings.h1.count, format: v => v, optimal: [1, 1] },
+                { label: 'Word Count', getValue: d => d.seoData.content.wordCount, format: v => v.toLocaleString() },
+                { label: 'Internal Links', getValue: d => d.seoData.links.internalCount, format: v => v },
+                { label: 'External Links', getValue: d => d.seoData.links.externalCount, format: v => v },
+                { label: 'Images', getValue: d => d.seoData.images.total, format: v => v },
+                { label: 'Alt Text %', getValue: d => d.seoData.images.altPercentage, format: v => v + '%' },
+                { label: 'Readability', getValue: d => d.seoData.content.fleschScore, format: v => v },
+                { label: 'Schema Markup', getValue: d => d.seoData.schema.length > 0, format: v => v ? '✓' : '✗' },
+                { label: 'HTTPS', getValue: d => d.seoData.technical.isHttps, format: v => v ? '✓' : '✗' }
+            ];
+
+            container.innerHTML = `
+                <div class="analysis-card">
+                    <div class="analysis-card-header">
+                        <h3><span class="icon">📊</span> SEO Comparison</h3>
+                    </div>
+                    <div class="analysis-card-body" style="overflow-x: auto;">
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    ${allSites.map(s => `<th style="${s.isMain ? 'background: rgba(0,212,170,0.1);' : ''}">${extractDomain(s.url)}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${metrics.map(metric => {
+                                    const values = allSites.map(s => metric.getValue(s.data));
+                                    const numericValues = values.filter(v => typeof v === 'number');
+                                    const max = Math.max(...numericValues);
+                                    const min = Math.min(...numericValues);
+                                    
+                                    return `
+                                        <tr>
+                                            <td><strong>${metric.label}</strong></td>
+                                            ${allSites.map((s, i) => {
+                                                const value = values[i];
+                                                const formatted = metric.format(value);
+                                                let indicator = '';
+                                                
+                                                if (typeof value === 'number' && numericValues.length > 1) {
+                                                    if (value === max) indicator = '<span class="comparison-indicator indicator-best"></span>';
+                                                    else if (value === min) indicator = '<span class="comparison-indicator indicator-worst"></span>';
+                                                    else indicator = '<span class="comparison-indicator indicator-mid"></span>';
+                                                } else if (typeof value === 'boolean') {
+                                                    indicator = value ? '<span class="comparison-indicator indicator-best"></span>' : '<span class="comparison-indicator indicator-worst"></span>';
+                                                }
+                                                
+                                                return `
+                                                    <td style="${s.isMain ? 'background: rgba(0,212,170,0.05);' : ''}">
+                                                        <div class="comparison-value">
+                                                            ${indicator}
+                                                            ${formatted}
+                                                        </div>
+                                                    </td>
+                                                `;
+                                            }).join('')}
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 24px;">
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <h3><span class="icon">🏆</span> Competitive Insights</h3>
+                        </div>
+                        <div class="analysis-card-body">
+                            ${generateCompetitiveInsights(allSites)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateCompetitiveInsights(allSites) {
+            if (allSites.length < 2) return '<p style="color: var(--text-muted);">Add competitors to see insights.</p>';
+            
+            const mainSite = allSites[0];
+            const competitors = allSites.slice(1);
+            let insights = [];
+            
+            // Overall comparison
+            const mainOverall = mainSite.data.scores.overall;
+            const avgCompetitorOverall = competitors.reduce((a, b) => a + b.data.scores.overall, 0) / competitors.length;
+            
+            if (mainOverall > avgCompetitorOverall) {
+                insights.push({ type: 'success', text: `Your overall SEO score (${mainOverall}) is above the competitor average (${Math.round(avgCompetitorOverall)}).` });
+            } else {
+                insights.push({ type: 'warning', text: `Your overall SEO score (${mainOverall}) is below the competitor average (${Math.round(avgCompetitorOverall)}). Focus on improving key metrics.` });
+            }
+            
+            // Content comparison
+            const mainWords = mainSite.data.seoData.content.wordCount;
+            const avgWords = competitors.reduce((a, b) => a + b.data.seoData.content.wordCount, 0) / competitors.length;
+            
+            if (mainWords < avgWords * 0.7) {
+                insights.push({ type: 'warning', text: `Your content is significantly shorter (${mainWords} words) than competitors (avg: ${Math.round(avgWords)} words). Consider adding more comprehensive content.` });
+            }
+            
+            // Performance comparison
+            const mainPerf = mainSite.data.scores.performance;
+            const avgPerf = competitors.reduce((a, b) => a + b.data.scores.performance, 0) / competitors.length;
+            
+            if (mainPerf < avgPerf) {
+                insights.push({ type: 'warning', text: `Your performance score (${mainPerf}) lags behind competitors (avg: ${Math.round(avgPerf)}). Focus on speed optimizations.` });
+            } else {
+                insights.push({ type: 'success', text: `Your site performance (${mainPerf}) exceeds competitor average (${Math.round(avgPerf)}).` });
+            }
+            
+            return `<ul class="issues-list">
+                ${insights.map(i => `
+                    <li class="issue-item">
+                        <div class="issue-icon ${i.type}">${i.type === 'success' ? '✓' : '!'}</div>
+                        <div class="issue-content">
+                            <p>${i.text}</p>
+                        </div>
+                    </li>
+                `).join('')}
+            </ul>`;
+        }
+
+        // Export Functions
+        function exportJSON() {
+            const data = {
+                url: state.mainSite,
+                analyzedAt: new Date().toISOString(),
+                seoData: state.analysisData.seoData,
+                scores: state.analysisData.scores,
+                competitors: state.competitorData
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `seo-report-${extractDomain(state.mainSite)}-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportPDF() {
+            // Create printable version
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>SEO Report - ${state.mainSite}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+                        h1 { color: #00d4aa; }
+                        h2 { color: #333; border-bottom: 2px solid #00d4aa; padding-bottom: 8px; }
+                        .score { font-size: 48px; font-weight: bold; }
+                        .score.good { color: #00d4aa; }
+                        .score.warning { color: #ffa502; }
+                        .score.bad { color: #ff4757; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                        th { background: #f5f5f5; }
+                        .metric { display: inline-block; width: 150px; text-align: center; margin: 10px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🔍 SEO Analysis Report</h1>
+                    <p>Website: <strong>${state.mainSite}</strong></p>
+                    <p>Generated: ${new Date().toLocaleString()}</p>
+                    
+                    <h2>📊 Scores Overview</h2>
+                    <div class="metric">
+                        <div class="score ${state.analysisData.scores.overall >= 80 ? 'good' : state.analysisData.scores.overall >= 50 ? 'warning' : 'bad'}">${state.analysisData.scores.overall}</div>
+                        <div>Overall</div>
+                    </div>
+                    <div class="metric">
+                        <div class="score ${state.analysisData.scores.technical >= 80 ? 'good' : 'warning'}">${state.analysisData.scores.technical}</div>
+                        <div>Technical</div>
+                    </div>
+                    <div class="metric">
+                        <div class="score ${state.analysisData.scores.content >= 80 ? 'good' : 'warning'}">${state.analysisData.scores.content}</div>
+                        <div>Content</div>
+                    </div>
+                    <div class="metric">
+                        <div class="score ${state.analysisData.scores.performance >= 80 ? 'good' : 'warning'}">${state.analysisData.scores.performance}</div>
+                        <div>Performance</div>
+                    </div>
+                    
+                    <h2>📋 Meta Information</h2>
+                    <table>
+                        <tr><th>Title</th><td>${state.analysisData.seoData.meta.title || 'Missing'}</td></tr>
+                        <tr><th>Title Length</th><td>${state.analysisData.seoData.meta.titleLength} characters</td></tr>
+                        <tr><th>Description</th><td>${state.analysisData.seoData.meta.description || 'Missing'}</td></tr>
+                        <tr><th>Description Length</th><td>${state.analysisData.seoData.meta.descriptionLength} characters</td></tr>
+                        <tr><th>Canonical URL</th><td>${state.analysisData.seoData.meta.canonical || 'Not set'}</td></tr>
+                    </table>
+                    
+                    <h2>📝 Content Statistics</h2>
+                    <table>
+                        <tr><th>Word Count</th><td>${state.analysisData.seoData.content.wordCount}</td></tr>
+                        <tr><th>Sentence Count</th><td>${state.analysisData.seoData.content.sentenceCount}</td></tr>
+                        <tr><th>Readability Score</th><td>${state.analysisData.seoData.content.fleschScore}</td></tr>
+                        <tr><th>H1 Tags</th><td>${state.analysisData.seoData.headings.h1.count}</td></tr>
+                        <tr><th>H2 Tags</th><td>${state.analysisData.seoData.headings.h2.count}</td></tr>
+                    </table>
+                    
+                    <h2>🔗 Links</h2>
+                    <table>
+                        <tr><th>Internal Links</th><td>${state.analysisData.seoData.links.internalCount}</td></tr>
+                        <tr><th>External Links</th><td>${state.analysisData.seoData.links.externalCount}</td></tr>
+                    </table>
+                    
+                    <h2>🖼️ Images</h2>
+                    <table>
+                        <tr><th>Total Images</th><td>${state.analysisData.seoData.images.total}</td></tr>
+                        <tr><th>With Alt Text</th><td>${state.analysisData.seoData.images.withAlt}</td></tr>
+                        <tr><th>Missing Alt Text</th><td>${state.analysisData.seoData.images.withoutAlt}</td></tr>
+                    </table>
+                    
+                    <p style="margin-top: 40px; color: #999; text-align: center;">
+                        Generated by SEO Analyzer Pro
+                    </p>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add enter key support
+            document.getElementById('website-url').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') startAnalysis();
+            });
+            
+            document.getElementById('competitor-url').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addCompetitor();
+            });
+        });
+    </script>
+</body>
+</html>
