@@ -641,6 +641,7 @@
     <script>
         const state = { mainSite: null, competitors: [], analysisData: {}, competitorData: {}, apiStatus: { pageSpeed: false, html: false } };
         const GEMINI_KEY = 'AIzaSyBX3D1RlUbWSMG5BYPTocyEmsZfCeysTe4';
+        const PAGESPEED_KEY = 'AIzaSyDJsI1F60G6XHnvM2-rYU376kZpQKA0_ns';
         const PROXIES = [
             'https://api.allorigins.win/raw?url=',
             'https://corsproxy.io/?',
@@ -718,7 +719,7 @@
         }
 
         async function fetchPageSpeed(url, retries = 3) {
-            const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=accessibility&category=best-practices&category=seo`;
+            const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=accessibility&category=best-practices&category=seo&key=${PAGESPEED_KEY}`;
             
             for (let attempt = 1; attempt <= retries; attempt++) {
                 try {
