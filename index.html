@@ -239,6 +239,7 @@
             font-weight: 700;
         }
         .score-card h4 { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; }
+        .score-card .na-indicator { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
 
         .analysis-grid {
             display: grid;
@@ -283,6 +284,7 @@
         .status-good { background: rgba(0,212,170,0.15); color: var(--accent-primary); }
         .status-warning { background: rgba(255,165,2,0.15); color: var(--warning); }
         .status-error { background: rgba(255,71,87,0.15); color: var(--danger); }
+        .status-na { background: rgba(106,106,128,0.15); color: var(--text-muted); }
 
         .analysis-card-body { padding: 20px; }
 
@@ -386,7 +388,7 @@
         .loading-overlay.active { display: flex; }
         .loader { width: 50px; height: 50px; border: 3px solid var(--bg-tertiary); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text { margin-top: 20px; font-size: 15px; color: var(--text-secondary); }
+        .loading-text { margin-top: 20px; font-size: 15px; color: var(--text-secondary); text-align: center; max-width: 400px; }
         .loading-progress { width: 280px; height: 4px; background: var(--bg-tertiary); border-radius: 2px; margin-top: 16px; overflow: hidden; }
         .loading-progress-bar { height: 100%; background: var(--gradient-1); width: 0%; transition: width 0.5s ease; }
 
@@ -407,6 +409,30 @@
         .website-screenshot img { width: 100%; height: 100%; object-fit: cover; }
         .progress-bar { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
         .progress-bar-fill { height: 100%; border-radius: 3px; }
+
+        .api-warning {
+            background: rgba(255,165,2,0.1);
+            border: 1px solid var(--warning);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--warning);
+        }
+        .api-warning.error {
+            background: rgba(255,71,87,0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        .api-warning.success {
+            background: rgba(0,212,170,0.1);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+        .api-warning-icon { font-size: 20px; }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 3px; }
@@ -430,7 +456,7 @@
             <div class="logo-icon">S</div>
             <div class="logo-text">SEO<span>Analyzer</span> Pro</div>
         </div>
-        <div class="header-badge">v2.0 • Google PageSpeed API</div>
+        <div class="header-badge">v2.1 • Google PageSpeed API</div>
     </header>
 
     <div class="container">
@@ -445,11 +471,8 @@
                     <label>Website URL</label>
                     <input type="url" id="website-url" placeholder="https://example.com" value="https://dzukou.com/">
                 </div>
-                <div class="input-group" style="max-width: 320px;">
-                    <label>PageSpeed API Key <a href="https://developers.google.com/speed/docs/insights/v5/get-started" target="_blank" style="color: var(--accent-primary); font-size: 10px;">(Get Free Key)</a></label>
-                    <input type="text" id="api-key" placeholder="AIzaSy... (optional but recommended)">
-                </div>
                 <button class="btn btn-primary" onclick="startAnalysis()">🔍 Analyze</button>
+                <button class="btn btn-secondary" onclick="testPageSpeedAPI()" style="font-size:12px;">🧪 Test API</button>
             </div>
             <div class="competitors-section">
                 <div class="competitors-header"><h3>📊 Add Competitors (Optional)</h3></div>
@@ -462,6 +485,8 @@
         </section>
 
         <section class="results-section" id="results-section">
+            <div id="api-status-banner"></div>
+            
             <div class="tabs">
                 <button class="tab active" onclick="showTab('overview')">📈 Overview</button>
                 <button class="tab" onclick="showTab('technical')">⚙️ Technical</button>
@@ -615,9 +640,14 @@
     </div>
 
     <script>
-        const state = { mainSite: null, competitors: [], analysisData: {}, competitorData: {} };
+        const state = { mainSite: null, competitors: [], analysisData: {}, competitorData: {}, apiStatus: { pageSpeed: false, html: false }, lastApiError: null };
         const GEMINI_KEY = 'AIzaSyBX3D1RlUbWSMG5BYPTocyEmsZfCeysTe4';
-        const PROXIES = ['https://api.allorigins.win/raw?url=', 'https://corsproxy.io/?'];
+        const PAGESPEED_KEY = 'AIzaSyDJsI1F60G6XHnvM2-rYU376kZpQKA0_ns';
+        const PROXIES = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://api.codetabs.com/v1/proxy?quest='
+        ];
         let proxyIdx = 0;
 
         function normalizeUrl(u) {
@@ -643,17 +673,23 @@
             document.getElementById('loading-progress').style.width = progress + '%';
         }
 
-        function getScoreColor(s) {
+        function getScoreColor(s, isNA = false) {
+            if (isNA || s === null || s === undefined) return 'var(--text-muted)';
             if (s >= 90) return 'var(--accent-primary)';
             if (s >= 50) return 'var(--warning)';
             return 'var(--danger)';
         }
 
-        function updateBadge(id, score) {
+        function updateBadge(id, score, isNA = false) {
             const el = document.getElementById(id);
             if (!el) return;
-            el.className = 'status-badge ' + (score >= 80 ? 'status-good' : score >= 50 ? 'status-warning' : 'status-error');
-            el.textContent = score >= 80 ? 'Good' : score >= 50 ? 'Needs Work' : 'Critical';
+            if (isNA || score === null) {
+                el.className = 'status-badge status-na';
+                el.textContent = 'N/A';
+            } else {
+                el.className = 'status-badge ' + (score >= 80 ? 'status-good' : score >= 50 ? 'status-warning' : 'status-error');
+                el.textContent = score >= 80 ? 'Good' : score >= 50 ? 'Needs Work' : 'Critical';
+            }
         }
 
         function addCompetitor() {
@@ -683,63 +719,94 @@
             document.getElementById(`panel-${id}`).classList.add('active');
         }
 
-        async function fetchPageSpeed(url) {
-            const apiKey = document.getElementById('api-key').value.trim();
-            const apiEndpoint = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
+        async function fetchPageSpeed(url, retries = 3) {
+            const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=accessibility&category=best-practices&category=seo&key=${PAGESPEED_KEY}`;
             
-            const apiUrl = new URL(apiEndpoint);
-            apiUrl.searchParams.set('url', url);
-            apiUrl.searchParams.set('strategy', 'mobile');
-            apiUrl.searchParams.set('category', 'performance');
-            apiUrl.searchParams.append('category', 'accessibility');
-            apiUrl.searchParams.append('category', 'best-practices');
-            apiUrl.searchParams.append('category', 'seo');
+            console.log('PageSpeed API URL:', api);
+            state.lastApiError = null;
             
-            if (apiKey) {
-                apiUrl.searchParams.set('key', apiKey);
-            }
-            
-            try {
-                console.log('Fetching PageSpeed:', apiUrl.toString());
-                const res = await fetch(apiUrl.toString());
-                
-                if (!res.ok) {
-                    const errorData = await res.json().catch(() => ({}));
-                    console.error('PageSpeed API error:', res.status, errorData);
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    updateProgress(`Fetching PageSpeed data (attempt ${attempt}/${retries})...`, 20 + (attempt * 5));
                     
-                    if (res.status === 400 && errorData.error?.message?.includes('API key')) {
-                        throw new Error('API key required. Get a free key from Google Cloud Console.');
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout (PageSpeed can be slow)
+                    
+                    console.log(`Attempt ${attempt}: Fetching...`);
+                    const res = await fetch(api, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    
+                    console.log(`Attempt ${attempt}: Response status ${res.status}`);
+                    
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        console.error(`PageSpeed API returned ${res.status}:`, errorText);
+                        state.lastApiError = `HTTP ${res.status}: ${errorText.substring(0, 200)}`;
+                        if (attempt < retries) {
+                            await new Promise(r => setTimeout(r, 2000 * attempt));
+                            continue;
+                        }
+                        return null;
                     }
-                    return null;
+                    
+                    const data = await res.json();
+                    console.log('PageSpeed response keys:', Object.keys(data));
+                    
+                    if (data.error) {
+                        console.error('PageSpeed API error:', data.error);
+                        state.lastApiError = `API Error: ${data.error.message || JSON.stringify(data.error)}`;
+                        if (attempt < retries) {
+                            await new Promise(r => setTimeout(r, 2000 * attempt));
+                            continue;
+                        }
+                        return null;
+                    }
+                    
+                    // Validate that we got actual lighthouse data
+                    if (data.lighthouseResult && data.lighthouseResult.categories) {
+                        console.log('PageSpeed data received successfully!');
+                        console.log('Categories:', Object.keys(data.lighthouseResult.categories));
+                        return data;
+                    } else {
+                        console.warn('PageSpeed data incomplete - missing lighthouseResult or categories');
+                        state.lastApiError = 'Incomplete data from API';
+                        if (attempt < retries) {
+                            await new Promise(r => setTimeout(r, 2000 * attempt));
+                            continue;
+                        }
+                    }
+                } catch (e) {
+                    console.error(`PageSpeed error (attempt ${attempt}):`, e.name, e.message);
+                    state.lastApiError = `${e.name}: ${e.message}`;
+                    if (attempt < retries) {
+                        await new Promise(r => setTimeout(r, 2000 * attempt));
+                        continue;
+                    }
                 }
-                
-                const data = await res.json();
-                if (data.error) {
-                    console.error('PageSpeed error:', data.error);
-                    return null;
-                }
-                
-                console.log('PageSpeed data received:', data);
-                return data;
-            } catch (e) {
-                console.error('PageSpeed fetch error:', e);
-                throw e;
             }
+            return null;
         }
 
         async function fetchHTML(url) {
             for (let i = 0; i < PROXIES.length; i++) {
                 const idx = (proxyIdx + i) % PROXIES.length;
                 try {
-                    const res = await Promise.race([
-                        fetch(PROXIES[idx] + encodeURIComponent(url)),
-                        new Promise((_, r) => setTimeout(() => r(new Error('Timeout')), 10000))
-                    ]);
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+                    
+                    const res = await fetch(PROXIES[idx] + encodeURIComponent(url), { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    
                     if (res.ok) {
                         const text = await res.text();
-                        if (text && text.includes('<')) { proxyIdx = idx; return text; }
+                        if (text && text.includes('<')) { 
+                            proxyIdx = idx; 
+                            return text; 
+                        }
                     }
-                } catch {}
+                } catch (e) {
+                    console.warn(`Proxy ${idx} failed:`, e.message);
+                }
             }
             return null;
         }
@@ -859,17 +926,27 @@
         }
 
         function calcScores(seo, ps) {
-            const s = { overall: 0, technical: 0, content: 0, performance: 0, accessibility: 0, seo: 0, bestPractices: 0 };
-            const hasPS = !!ps?.lighthouseResult?.categories;
-            const cats = ps?.lighthouseResult?.categories;
+            const s = { 
+                overall: 0, 
+                technical: 0, 
+                content: 0, 
+                performance: null, 
+                accessibility: null, 
+                seo: null, 
+                bestPractices: null,
+                hasPageSpeedData: false
+            };
             
+            const cats = ps?.lighthouseResult?.categories;
             if (cats) {
-                s.performance = Math.round((cats.performance?.score || 0) * 100);
-                s.accessibility = Math.round((cats.accessibility?.score || 0) * 100);
-                s.seo = Math.round((cats.seo?.score || 0) * 100);
-                s.bestPractices = Math.round((cats['best-practices']?.score || 0) * 100);
+                s.hasPageSpeedData = true;
+                s.performance = cats.performance?.score !== undefined ? Math.round(cats.performance.score * 100) : null;
+                s.accessibility = cats.accessibility?.score !== undefined ? Math.round(cats.accessibility.score * 100) : null;
+                s.seo = cats.seo?.score !== undefined ? Math.round(cats.seo.score * 100) : null;
+                s.bestPractices = cats['best-practices']?.score !== undefined ? Math.round(cats['best-practices'].score * 100) : null;
             }
 
+            // Technical score from SEO data
             let tp = 0;
             if (seo.meta?.titleLength >= 30 && seo.meta?.titleLength <= 60) tp += 20;
             else if (seo.meta?.titleLength > 0) tp += 10;
@@ -883,6 +960,7 @@
             if (seo.schema?.length > 0) tp += 10;
             s.technical = tp;
 
+            // Content score
             let cp = 0;
             if (seo.content?.wordCount >= 300) cp += 30;
             else if (seo.content?.wordCount >= 100) cp += 15;
@@ -894,16 +972,62 @@
             else if (seo.headings?.h1?.count > 0) cp += 10;
             s.content = Math.round(cp);
 
-            // Calculate overall score based on available data
-            if (hasPS) {
-                // Full calculation with PageSpeed data
-                s.overall = Math.round(s.technical * 0.2 + s.content * 0.15 + s.performance * 0.25 + s.seo * 0.25 + s.accessibility * 0.15);
+            // Overall score calculation
+            if (s.hasPageSpeedData && s.performance !== null && s.seo !== null && s.accessibility !== null) {
+                s.overall = Math.round(
+                    s.technical * 0.2 + 
+                    s.content * 0.15 + 
+                    s.performance * 0.25 + 
+                    s.seo * 0.25 + 
+                    s.accessibility * 0.15
+                );
             } else {
-                // Limited calculation without PageSpeed - only use Technical and Content
-                s.overall = Math.round(s.technical * 0.55 + s.content * 0.45);
+                // Fallback: use only technical and content scores
+                s.overall = Math.round((s.technical + s.content) / 2);
             }
 
             return s;
+        }
+
+        function renderApiStatus(ps, html) {
+            const banner = document.getElementById('api-status-banner');
+            const hasPS = ps && ps.lighthouseResult;
+            const hasHTML = html !== null;
+            
+            state.apiStatus.pageSpeed = hasPS;
+            state.apiStatus.html = hasHTML;
+            
+            const errorDetail = state.lastApiError ? `<br><small style="opacity:0.8">Error: ${state.lastApiError}</small>` : '';
+            
+            if (hasPS && hasHTML) {
+                banner.innerHTML = `
+                    <div class="api-warning success">
+                        <span class="api-warning-icon">✅</span>
+                        <span>Full analysis complete! PageSpeed API and HTML parsing both successful.</span>
+                    </div>
+                `;
+            } else if (!hasPS && hasHTML) {
+                banner.innerHTML = `
+                    <div class="api-warning">
+                        <span class="api-warning-icon">⚠️</span>
+                        <span>PageSpeed API unavailable. Performance, SEO, and Accessibility scores are estimated. Technical and Content analysis from HTML parsing.${errorDetail}</span>
+                    </div>
+                `;
+            } else if (hasPS && !hasHTML) {
+                banner.innerHTML = `
+                    <div class="api-warning">
+                        <span class="api-warning-icon">⚠️</span>
+                        <span>HTML parsing blocked by CORS. Using PageSpeed API data only. Some detailed content analysis unavailable.</span>
+                    </div>
+                `;
+            } else {
+                banner.innerHTML = `
+                    <div class="api-warning error">
+                        <span class="api-warning-icon">❌</span>
+                        <span>Limited analysis available. Both PageSpeed API and HTML parsing failed. Try a different URL or check if the site is accessible.${errorDetail}</span>
+                    </div>
+                `;
+            }
         }
 
         async function startAnalysis() {
@@ -911,38 +1035,51 @@
             if (!url) { alert('Enter a valid URL'); return; }
 
             state.mainSite = url;
-            showLoading(true, 'Starting...', 5);
-
-            let ps = null;
-            let psError = null;
+            showLoading(true, 'Starting analysis...', 5);
 
             try {
-                updateProgress('Fetching PageSpeed data...', 20);
+                // Fetch PageSpeed data with retries
+                updateProgress('Fetching PageSpeed data...', 15);
+                const ps = await fetchPageSpeed(url, 3);
+                
+                let seo = null;
+                let htmlContent = null;
+                
+                // Try to fetch HTML
+                updateProgress('Fetching HTML content...', 45);
                 try {
-                    ps = await fetchPageSpeed(url);
+                    htmlContent = await fetchHTML(url);
+                    if (htmlContent) {
+                        seo = extractSEO(parseHTML(htmlContent), url);
+                    }
                 } catch (e) {
-                    psError = e.message;
-                    console.log('PageSpeed failed:', e.message);
+                    console.warn('HTML fetch failed:', e);
                 }
 
-                let seo = null;
-                updateProgress('Fetching HTML...', 45);
-                try {
-                    const html = await fetchHTML(url);
-                    if (html) seo = extractSEO(parseHTML(html), url);
-                } catch {}
+                // Fallback to PageSpeed data for SEO info if HTML failed
+                if (!seo && ps) {
+                    seo = extractFromPS(ps, url);
+                }
 
-                if (!seo && ps) seo = extractFromPS(ps, url);
-
-                if (!ps && !seo) {
-                    throw new Error(psError || 'Analysis failed. Please check the URL and try again.');
+                // Create minimal SEO object if both failed
+                if (!seo) {
+                    seo = {
+                        url, 
+                        domain: extractDomain(url),
+                        meta: { title: 'Unable to fetch', titleLength: 0, description: '', descriptionLength: 0, canonical: '', robots: '', ogTitle: '', ogImage: '' },
+                        headings: { h1: { count: 0, texts: [] }, h2: { count: 0, texts: [] }, h3: { count: 0, texts: [] }, h4: { count: 0, texts: [] }, h5: { count: 0, texts: [] }, h6: { count: 0, texts: [] } },
+                        content: { wordCount: 0, sentenceCount: 0, avgWordsPerSentence: 0, fleschScore: 0, topKeywords: [] },
+                        links: { internal: [], external: [], internalCount: 0, externalCount: 0, totalCount: 0 },
+                        images: { total: 0, withAlt: 0, withoutAlt: 0, altPercentage: 100 },
+                        technical: { isHttps: url.startsWith('https'), hasViewport: false, lang: '' },
+                        schema: []
+                    };
                 }
 
                 updateProgress('Calculating scores...', 65);
                 const scores = calcScores(seo, ps);
 
-                // Store whether we have real PageSpeed data
-                state.analysisData = { seoData: seo, pageSpeed: ps, scores, hasPageSpeed: !!ps, psError };
+                state.analysisData = { seoData: seo, pageSpeed: ps, scores, htmlFetched: htmlContent !== null };
 
                 if (state.competitors.length > 0) {
                     updateProgress('Analyzing competitors...', 75);
@@ -952,7 +1089,8 @@
                 updateProgress('Generating AI recommendations...', 88);
                 const ai = await generateAI(seo, scores, ps);
 
-                updateProgress('Rendering...', 95);
+                updateProgress('Rendering results...', 95);
+                renderApiStatus(ps, htmlContent);
                 renderAll(seo, scores, ps, ai);
 
                 showLoading(false);
@@ -970,9 +1108,12 @@
             state.competitorData = {};
             for (const u of state.competitors) {
                 try {
-                    const ps = await fetchPageSpeed(u);
+                    const ps = await fetchPageSpeed(u, 2);
                     let seo = null;
-                    try { const html = await fetchHTML(u); if (html) seo = extractSEO(parseHTML(html), u); } catch {}
+                    try { 
+                        const html = await fetchHTML(u); 
+                        if (html) seo = extractSEO(parseHTML(html), u); 
+                    } catch {}
                     if (!seo && ps) seo = extractFromPS(ps, u);
                     if (seo) state.competitorData[u] = { seoData: seo, pageSpeed: ps, scores: calcScores(seo, ps) };
                 } catch {}
@@ -987,9 +1128,10 @@ Description: ${seo.meta?.descriptionLength} chars
 H1: ${seo.headings?.h1?.count}, H2: ${seo.headings?.h2?.count}
 Words: ${seo.content?.wordCount}, Images: ${seo.images?.total} (${seo.images?.withoutAlt} missing alt)
 HTTPS: ${seo.technical?.isHttps}, Schema: ${seo.schema?.length > 0}
-Scores: Overall ${scores.overall}, Technical ${scores.technical}, Content ${scores.content}, Performance ${scores.performance}, SEO ${scores.seo}
+Scores: Overall ${scores.overall}, Technical ${scores.technical}, Content ${scores.content}, Performance ${scores.performance ?? 'N/A'}, SEO ${scores.seo ?? 'N/A'}
+PageSpeed Data Available: ${scores.hasPageSpeedData}
 
-Provide HTML formatted recommendations with h4 headings for: Executive Summary, Critical Issues, Quick Wins, Content Strategy, Technical Fixes.`;
+Provide HTML formatted recommendations with h4 headings for: Executive Summary, Critical Issues, Quick Wins, Content Strategy, Technical Fixes. Note if PageSpeed data was unavailable.`;
 
             try {
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
@@ -1013,16 +1155,18 @@ Provide HTML formatted recommendations with h4 headings for: Executive Summary, 
             if (seo.images?.withoutAlt > 0) issues.push(`Add alt text to ${seo.images.withoutAlt} images`);
             if (!seo.technical?.isHttps) issues.push('Enable HTTPS');
             if (!seo.schema?.length) issues.push('Add Schema.org markup');
+            
+            const psNote = scores.hasPageSpeedData ? '' : '<p style="color:var(--warning)">⚠️ Note: PageSpeed API data was unavailable. Performance, SEO, and Accessibility scores could not be retrieved from Google Lighthouse.</p>';
 
-            return `<h4>📋 Summary</h4><p>Overall: <strong>${scores.overall}/100</strong></p>
-            <h4>🚨 Issues</h4><ul>${issues.map(i => `<li>${i}</li>`).join('')}</ul>
-            <h4>🚀 Quick Wins</h4><ul><li>Optimize images</li><li>Enable caching</li><li>Minify CSS/JS</li></ul>`;
+            return `<h4>📋 Summary</h4><p>Overall: <strong>${scores.overall}/100</strong></p>${psNote}
+            <h4>🚨 Issues</h4><ul>${issues.map(i => `<li>${i}</li>`).join('') || '<li>No critical issues detected</li>'}</ul>
+            <h4>🚀 Quick Wins</h4><ul><li>Optimize images for faster loading</li><li>Enable browser caching</li><li>Minify CSS/JS files</li></ul>`;
         }
 
         function renderAll(seo, scores, ps, ai) {
             renderPreview(seo, ps);
             renderStats(seo, scores);
-            renderScores(scores, ps);
+            renderScores(scores);
             renderFindings(seo, scores, ps);
             renderWins(seo, scores);
             renderTechnical(seo, ps);
@@ -1053,35 +1197,35 @@ Provide HTML formatted recommendations with h4 headings for: Executive Summary, 
             `;
         }
 
-        function renderScores(scores, ps) {
-            const hasPS = !!ps?.lighthouseResult?.categories;
+        function renderScores(scores) {
             const items = [
-                { k: 'overall', l: 'Overall' }, { k: 'technical', l: 'Technical' }, { k: 'content', l: 'Content' },
-                { k: 'performance', l: 'Performance', needsPS: true }, { k: 'seo', l: 'SEO', needsPS: true }, { k: 'accessibility', l: 'Accessibility', needsPS: true }
+                { k: 'overall', l: 'Overall' }, 
+                { k: 'technical', l: 'Technical' }, 
+                { k: 'content', l: 'Content' },
+                { k: 'performance', l: 'Performance' }, 
+                { k: 'seo', l: 'SEO' }, 
+                { k: 'accessibility', l: 'Accessibility' }
             ];
             const c = 2 * Math.PI * 38;
             
-            let notice = '';
-            if (!hasPS) {
-                notice = `<div style="grid-column: 1/-1; background: rgba(255,165,2,0.1); border: 1px solid var(--warning); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: var(--warning);">
-                    ⚠️ <strong>PageSpeed API unavailable.</strong> Add a <a href="https://developers.google.com/speed/docs/insights/v5/get-started" target="_blank" style="color: var(--accent-primary);">free API key</a> to unlock Performance, SEO, and Accessibility scores.
-                </div>`;
-            }
-            
-            document.getElementById('score-grid').innerHTML = notice + items.map(({ k, l, needsPS }) => {
-                const s = scores[k] || 0;
-                const unavailable = needsPS && !hasPS;
-                const o = c - (s / 100) * c;
-                const col = unavailable ? 'var(--text-muted)' : getScoreColor(s);
-                return `<div class="score-card" ${unavailable ? 'style="opacity: 0.6"' : ''}>
+            document.getElementById('score-grid').innerHTML = items.map(({ k, l }) => {
+                const s = scores[k];
+                const isNA = s === null || s === undefined;
+                const displayScore = isNA ? 'N/A' : s;
+                const o = isNA ? c : c - (s / 100) * c;
+                const col = getScoreColor(s, isNA);
+                const naIndicator = isNA ? '<div class="na-indicator">API unavailable</div>' : '';
+                
+                return `<div class="score-card">
                     <div class="score-circle">
                         <svg viewBox="0 0 90 90">
                             <circle class="bg" cx="45" cy="45" r="38"/>
-                            <circle class="progress" cx="45" cy="45" r="38" stroke="${col}" stroke-dasharray="${c}" stroke-dashoffset="${unavailable ? c : o}"/>
+                            <circle class="progress" cx="45" cy="45" r="38" stroke="${col}" stroke-dasharray="${c}" stroke-dashoffset="${o}"/>
                         </svg>
-                        <span class="score-value" style="color:${col}">${unavailable ? '—' : s}</span>
+                        <span class="score-value" style="color:${col};font-size:${isNA ? '16px' : '24px'}">${displayScore}</span>
                     </div>
                     <h4>${l}</h4>
+                    ${naIndicator}
                 </div>`;
             }).join('');
         }
@@ -1089,30 +1233,44 @@ Provide HTML formatted recommendations with h4 headings for: Executive Summary, 
         function renderFindings(seo, scores, ps) {
             const f = [];
             const a = ps?.lighthouseResult?.audits || {};
+            
+            // API status finding
+            if (!scores.hasPageSpeedData) {
+                f.push({ t: 'warning', title: 'Limited Data', desc: 'PageSpeed API unavailable - some metrics estimated.' });
+            }
+            
             if (scores.overall >= 80) f.push({ t: 'success', title: 'Good Score', desc: 'Solid SEO fundamentals.' });
-            else if (scores.overall < 50) f.push({ t: 'critical', title: 'Low Score', desc: 'Needs improvement.' });
-            if (a['document-title']?.score === 0) f.push({ t: 'critical', title: 'Missing Title', desc: 'Add a title tag.' });
-            if (a['meta-description']?.score === 0) f.push({ t: 'critical', title: 'Missing Description', desc: 'Add meta description.' });
-            if (a['image-alt']?.details?.items?.length) f.push({ t: 'warning', title: 'Missing Alt Text', desc: `${a['image-alt'].details.items.length} images.` });
-            if (scores.performance < 50) f.push({ t: 'critical', title: 'Poor Performance', desc: `${scores.performance}/100.` });
-            if (!seo.technical?.isHttps) f.push({ t: 'critical', title: 'No HTTPS', desc: 'Enable SSL.' });
+            else if (scores.overall < 50) f.push({ t: 'critical', title: 'Low Score', desc: 'Needs significant improvement.' });
+            
+            if (a['document-title']?.score === 0) f.push({ t: 'critical', title: 'Missing Title', desc: 'Add a descriptive title tag.' });
+            if (a['meta-description']?.score === 0) f.push({ t: 'critical', title: 'Missing Description', desc: 'Add meta description for better CTR.' });
+            if (a['image-alt']?.details?.items?.length) f.push({ t: 'warning', title: 'Missing Alt Text', desc: `${a['image-alt'].details.items.length} images need alt attributes.` });
+            if (scores.performance !== null && scores.performance < 50) f.push({ t: 'critical', title: 'Poor Performance', desc: `${scores.performance}/100 - needs optimization.` });
+            if (!seo.technical?.isHttps) f.push({ t: 'critical', title: 'No HTTPS', desc: 'Enable SSL certificate.' });
 
             document.getElementById('key-findings').innerHTML = f.slice(0, 6).map(x => `
-                <li class="issue-item"><div class="issue-icon ${x.t}">${x.t === 'critical' ? '⚠' : x.t === 'warning' ? '!' : '✓'}</div><div class="issue-content"><h5>${x.title}</h5><p>${x.desc}</p></div></li>
-            `).join('') || '<li class="issue-item"><div class="issue-icon success">✓</div><div class="issue-content"><h5>No Issues</h5></div></li>';
+                <li class="issue-item">
+                    <div class="issue-icon ${x.t}">${x.t === 'critical' ? '⚠' : x.t === 'warning' ? '!' : '✓'}</div>
+                    <div class="issue-content"><h5>${x.title}</h5><p>${x.desc}</p></div>
+                </li>
+            `).join('') || '<li class="issue-item"><div class="issue-icon success">✓</div><div class="issue-content"><h5>No Major Issues</h5><p>Looking good!</p></div></li>';
         }
 
         function renderWins(seo, scores) {
             const w = [];
-            if (seo.meta?.titleLength > 60) w.push({ title: 'Shorten Title', desc: 'Under 60 chars.' });
-            if (!seo.meta?.descriptionLength) w.push({ title: 'Add Description', desc: '120-160 chars.' });
-            if (seo.images?.withoutAlt > 0) w.push({ title: 'Add Alt Text', desc: `${seo.images.withoutAlt} images.` });
-            if (!seo.meta?.ogImage) w.push({ title: 'Add OG Image', desc: 'Better social sharing.' });
-            if (!seo.schema?.length) w.push({ title: 'Add Schema', desc: 'Rich snippets.' });
+            if (seo.meta?.titleLength > 60) w.push({ title: 'Shorten Title', desc: 'Keep under 60 characters.' });
+            else if (!seo.meta?.titleLength) w.push({ title: 'Add Page Title', desc: '30-60 characters recommended.' });
+            if (!seo.meta?.descriptionLength) w.push({ title: 'Add Meta Description', desc: '120-160 characters for best results.' });
+            if (seo.images?.withoutAlt > 0) w.push({ title: 'Add Alt Text', desc: `${seo.images.withoutAlt} images missing descriptions.` });
+            if (!seo.meta?.ogImage) w.push({ title: 'Add OG Image', desc: 'Improve social media sharing.' });
+            if (!seo.schema?.length) w.push({ title: 'Add Schema Markup', desc: 'Enable rich snippets in search.' });
 
             document.getElementById('quick-wins').innerHTML = w.slice(0, 5).map(x => `
-                <li class="issue-item"><div class="issue-icon info">🚀</div><div class="issue-content"><h5>${x.title}</h5><p>${x.desc}</p></div></li>
-            `).join('') || '<li class="issue-item"><div class="issue-icon success">✓</div><div class="issue-content"><h5>Looking Good!</h5></div></li>';
+                <li class="issue-item">
+                    <div class="issue-icon info">🚀</div>
+                    <div class="issue-content"><h5>${x.title}</h5><p>${x.desc}</p></div>
+                </li>
+            `).join('') || '<li class="issue-item"><div class="issue-icon success">✓</div><div class="issue-content"><h5>Great Job!</h5><p>No quick wins needed.</p></div></li>';
         }
 
         function renderTechnical(seo, ps) {
@@ -1127,72 +1285,108 @@ Provide HTML formatted recommendations with h4 headings for: Executive Summary, 
                 <div class="data-item"><span class="data-label">📌 Title</span><span class="data-value">${seo.meta?.title || 'Missing'}</span></div>
                 <div class="data-item"><span class="data-label">Length</span><span class="data-value" style="color:${getScoreColor(ts)}">${tl} chars</span></div>
                 <div class="data-item"><span class="data-label">📝 Description</span><span class="data-value" style="color:${getScoreColor(ds)}">${dl > 0 ? dl + ' chars' : 'Missing'}</span></div>
-                <div class="data-item"><span class="data-label">🔗 Canonical</span><span class="data-value">${seo.meta?.canonical ? '✓' : 'Not set'}</span></div>
+                <div class="data-item"><span class="data-label">🔗 Canonical</span><span class="data-value">${seo.meta?.canonical ? '✓ Set' : 'Not set'}</span></div>
             `;
 
             const h1s = seo.headings?.h1?.count === 1 ? 100 : seo.headings?.h1?.count > 0 ? 50 : 0;
             updateBadge('heading-status', h1s);
-            document.getElementById('heading-analysis').innerHTML = ['h1','h2','h3','h4'].map(t => `<div class="data-item"><span class="data-label">${t.toUpperCase()}</span><span class="data-value" style="color:${t === 'h1' ? getScoreColor(h1s) : 'inherit'}">${seo.headings?.[t]?.count || 0}</span></div>`).join('');
+            document.getElementById('heading-analysis').innerHTML = ['h1','h2','h3','h4'].map(t => 
+                `<div class="data-item"><span class="data-label">${t.toUpperCase()}</span><span class="data-value" style="color:${t === 'h1' ? getScoreColor(h1s) : 'inherit'}">${seo.headings?.[t]?.count || 0}</span></div>`
+            ).join('');
 
             const https = seo.technical?.isHttps;
             updateBadge('security-status', https ? 100 : 0);
-            document.getElementById('security-analysis').innerHTML = `<div class="data-item"><span class="data-label">🔒 HTTPS</span><span class="data-value" style="color:${https ? 'var(--accent-primary)' : 'var(--danger)'}">${https ? '✓ Enabled' : 'Not Enabled'}</span></div>`;
+            document.getElementById('security-analysis').innerHTML = `
+                <div class="data-item"><span class="data-label">🔒 HTTPS</span><span class="data-value" style="color:${https ? 'var(--accent-primary)' : 'var(--danger)'}">${https ? '✓ Enabled' : '✗ Not Enabled'}</span></div>
+            `;
 
             const vp = seo.technical?.hasViewport || a['viewport']?.score === 1;
             updateBadge('mobile-status', vp ? 100 : 0);
-            document.getElementById('mobile-analysis').innerHTML = `<div class="data-item"><span class="data-label">📱 Viewport</span><span class="data-value" style="color:${vp ? 'var(--accent-primary)' : 'var(--danger)'}">${vp ? '✓ Set' : 'Missing'}</span></div>`;
+            document.getElementById('mobile-analysis').innerHTML = `
+                <div class="data-item"><span class="data-label">📱 Viewport</span><span class="data-value" style="color:${vp ? 'var(--accent-primary)' : 'var(--danger)'}">${vp ? '✓ Set' : '✗ Missing'}</span></div>
+            `;
 
             updateBadge('schema-status', seo.schema?.length > 0 ? 100 : 0);
-            document.getElementById('schema-analysis').innerHTML = seo.schema?.length > 0 ? `<div class="code-block">${JSON.stringify(seo.schema, null, 2)}</div>` : '<p style="color:var(--text-muted)">No Schema.org markup found.</p>';
+            document.getElementById('schema-analysis').innerHTML = seo.schema?.length > 0 
+                ? `<div class="code-block">${JSON.stringify(seo.schema, null, 2)}</div>` 
+                : '<p style="color:var(--text-muted)">No Schema.org markup found. Consider adding structured data.</p>';
 
             updateBadge('robots-status', 80);
-            document.getElementById('robots-analysis').innerHTML = `<div class="data-item"><span class="data-label">Robots</span><span class="data-value">${seo.meta?.robots || 'index, follow'}</span></div><div class="data-item"><span class="data-label">Language</span><span class="data-value">${seo.technical?.lang || 'Not set'}</span></div>`;
+            document.getElementById('robots-analysis').innerHTML = `
+                <div class="data-item"><span class="data-label">Robots</span><span class="data-value">${seo.meta?.robots || 'index, follow'}</span></div>
+                <div class="data-item"><span class="data-label">Language</span><span class="data-value">${seo.technical?.lang || 'Not set'}</span></div>
+            `;
         }
 
         function renderContent(seo) {
-            document.getElementById('content-stats').innerHTML = `<div class="metric-grid"><div class="metric-item"><div class="metric-value">${seo.content?.wordCount || 0}</div><div class="metric-label">Words</div></div><div class="metric-item"><div class="metric-value">${seo.content?.sentenceCount || 0}</div><div class="metric-label">Sentences</div></div><div class="metric-item"><div class="metric-value">${seo.content?.avgWordsPerSentence || 0}</div><div class="metric-label">Avg/Sentence</div></div><div class="metric-item"><div class="metric-value">${seo.content?.fleschScore || 0}</div><div class="metric-label">Readability</div></div></div>`;
+            document.getElementById('content-stats').innerHTML = `
+                <div class="metric-grid">
+                    <div class="metric-item"><div class="metric-value">${seo.content?.wordCount || 0}</div><div class="metric-label">Words</div></div>
+                    <div class="metric-item"><div class="metric-value">${seo.content?.sentenceCount || 0}</div><div class="metric-label">Sentences</div></div>
+                    <div class="metric-item"><div class="metric-value">${seo.content?.avgWordsPerSentence || 0}</div><div class="metric-label">Avg/Sentence</div></div>
+                    <div class="metric-item"><div class="metric-value">${seo.content?.fleschScore || 0}</div><div class="metric-label">Readability</div></div>
+                </div>
+            `;
 
             const kw = seo.content?.topKeywords || [];
-            document.getElementById('keyword-analysis').innerHTML = kw.length > 0 ? `<div class="keywords-cloud">${kw.slice(0, 12).map((k, i) => `<span class="keyword-tag ${i < 4 ? 'primary' : ''}">${k.word} (${k.count})</span>`).join('')}</div>` : '<p style="color:var(--text-muted)">No keyword data.</p>';
+            document.getElementById('keyword-analysis').innerHTML = kw.length > 0 
+                ? `<div class="keywords-cloud">${kw.slice(0, 12).map((k, i) => `<span class="keyword-tag ${i < 4 ? 'primary' : ''}">${k.word} (${k.count})</span>`).join('')}</div>` 
+                : '<p style="color:var(--text-muted)">No keyword data available.</p>';
 
             updateBadge('image-status', seo.images?.altPercentage || 100);
-            document.getElementById('image-analysis').innerHTML = `<div class="metric-grid"><div class="metric-item"><div class="metric-value">${seo.images?.total || 0}</div><div class="metric-label">Total</div></div><div class="metric-item"><div class="metric-value" style="color:var(--accent-primary)">${seo.images?.withAlt || 0}</div><div class="metric-label">With Alt</div></div><div class="metric-item"><div class="metric-value" style="color:${seo.images?.withoutAlt > 0 ? 'var(--danger)' : 'var(--accent-primary)'}">${seo.images?.withoutAlt || 0}</div><div class="metric-label">Missing</div></div><div class="metric-item"><div class="metric-value">${seo.images?.altPercentage || 100}%</div><div class="metric-label">Coverage</div></div></div>`;
+            document.getElementById('image-analysis').innerHTML = `
+                <div class="metric-grid">
+                    <div class="metric-item"><div class="metric-value">${seo.images?.total || 0}</div><div class="metric-label">Total</div></div>
+                    <div class="metric-item"><div class="metric-value" style="color:var(--accent-primary)">${seo.images?.withAlt || 0}</div><div class="metric-label">With Alt</div></div>
+                    <div class="metric-item"><div class="metric-value" style="color:${seo.images?.withoutAlt > 0 ? 'var(--danger)' : 'var(--accent-primary)'}">${seo.images?.withoutAlt || 0}</div><div class="metric-label">Missing</div></div>
+                    <div class="metric-item"><div class="metric-value">${seo.images?.altPercentage || 100}%</div><div class="metric-label">Coverage</div></div>
+                </div>
+            `;
 
             const rs = seo.content?.fleschScore || 50;
             const rl = rs >= 80 ? 'Very Easy' : rs >= 60 ? 'Easy' : rs >= 40 ? 'Moderate' : 'Difficult';
-            document.getElementById('readability-analysis').innerHTML = `<div style="text-align:center;padding:16px"><div style="font-size:40px;font-weight:700;color:${getScoreColor(rs)}">${rs}</div><div style="color:var(--text-secondary);margin-top:4px">${rl}</div></div><div class="progress-bar" style="height:8px"><div class="progress-bar-fill" style="width:${rs}%;background:${getScoreColor(rs)}"></div></div>`;
+            document.getElementById('readability-analysis').innerHTML = `
+                <div style="text-align:center;padding:16px">
+                    <div style="font-size:40px;font-weight:700;color:${getScoreColor(rs)}">${rs}</div>
+                    <div style="color:var(--text-secondary);margin-top:4px">${rl}</div>
+                </div>
+                <div class="progress-bar" style="height:8px"><div class="progress-bar-fill" style="width:${rs}%;background:${getScoreColor(rs)}"></div></div>
+            `;
         }
 
         function renderPerformance(ps, scores) {
-            const hasPS = !!ps?.lighthouseResult?.categories;
             const a = ps?.lighthouseResult?.audits || {};
-            const items = [{ l: 'Performance', s: scores.performance }, { l: 'Accessibility', s: scores.accessibility }, { l: 'Best Practices', s: scores.bestPractices }, { l: 'SEO', s: scores.seo }];
+            const hasData = scores.hasPageSpeedData;
+            
+            const items = [
+                { l: 'Performance', s: scores.performance }, 
+                { l: 'Accessibility', s: scores.accessibility }, 
+                { l: 'Best Practices', s: scores.bestPractices }, 
+                { l: 'SEO', s: scores.seo }
+            ];
             const c = 2 * Math.PI * 38;
 
-            let notice = '';
-            if (!hasPS) {
-                notice = `<div style="grid-column: 1/-1; background: rgba(255,165,2,0.1); border: 1px solid var(--warning); border-radius: 8px; padding: 16px; text-align: center;">
-                    <p style="font-size: 14px; color: var(--warning); margin-bottom: 8px;">⚠️ <strong>PageSpeed data unavailable</strong></p>
-                    <p style="font-size: 12px; color: var(--text-secondary);">Add a <a href="https://developers.google.com/speed/docs/insights/v5/get-started" target="_blank" style="color: var(--accent-primary);">free Google API key</a> above to see Core Web Vitals, Performance scores, and optimization opportunities.</p>
-                </div>`;
-            }
-
-            document.getElementById('performance-scores').innerHTML = notice + items.map(({ l, s }) => {
-                const unavailable = !hasPS;
-                const o = c - (s / 100) * c;
-                const col = unavailable ? 'var(--text-muted)' : getScoreColor(s);
-                return `<div class="score-card" ${unavailable ? 'style="opacity: 0.6"' : ''}>
+            document.getElementById('performance-scores').innerHTML = items.map(({ l, s }) => {
+                const isNA = s === null || s === undefined;
+                const displayScore = isNA ? 'N/A' : s;
+                const o = isNA ? c : c - (s / 100) * c;
+                const col = getScoreColor(s, isNA);
+                const naIndicator = isNA ? '<div class="na-indicator">API unavailable</div>' : '';
+                
+                return `<div class="score-card">
                     <div class="score-circle">
                         <svg viewBox="0 0 90 90">
                             <circle class="bg" cx="45" cy="45" r="38"/>
-                            <circle class="progress" cx="45" cy="45" r="38" stroke="${col}" stroke-dasharray="${c}" stroke-dashoffset="${unavailable ? c : o}"/>
+                            <circle class="progress" cx="45" cy="45" r="38" stroke="${col}" stroke-dasharray="${c}" stroke-dashoffset="${o}"/>
                         </svg>
-                        <span class="score-value" style="color:${col}">${unavailable ? '—' : s}</span>
+                        <span class="score-value" style="color:${col};font-size:${isNA ? '14px' : '24px'}">${displayScore}</span>
                     </div>
                     <h4>${l}</h4>
+                    ${naIndicator}
                 </div>`;
             }).join('');
 
+            // Core Web Vitals
             const vitals = [
                 { k: 'largest-contentful-paint', l: 'LCP' },
                 { k: 'first-contentful-paint', l: 'FCP' },
@@ -1202,37 +1396,80 @@ Provide HTML formatted recommendations with h4 headings for: Executive Summary, 
                 { k: 'interactive', l: 'TTI' }
             ];
 
-            if (!hasPS) {
-                document.getElementById('vitals-analysis').innerHTML = '<p style="color:var(--text-muted); text-align: center; padding: 20px;">Add PageSpeed API key to view Core Web Vitals</p>';
-            } else {
+            if (hasData) {
                 document.getElementById('vitals-analysis').innerHTML = `<div class="vitals-grid">${vitals.map(v => {
                     const audit = a[v.k];
-                    if (!audit) return '';
+                    if (!audit) return `<div class="vital-item"><div class="vital-value" style="color:var(--text-muted)">N/A</div><div class="vital-label">${v.l}</div></div>`;
                     const sc = Math.round((audit.score || 0) * 100);
-                    return `<div class="vital-item"><div class="vital-value" style="color:${getScoreColor(sc)}">${audit.displayValue || 'N/A'}</div><div class="vital-label">${v.l}</div><div class="vital-status" style="background:${getScoreColor(sc)}20;color:${getScoreColor(sc)}">${sc >= 90 ? 'Good' : sc >= 50 ? 'Needs Work' : 'Poor'}</div></div>`;
+                    return `<div class="vital-item">
+                        <div class="vital-value" style="color:${getScoreColor(sc)}">${audit.displayValue || 'N/A'}</div>
+                        <div class="vital-label">${v.l}</div>
+                        <div class="vital-status" style="background:${getScoreColor(sc)}20;color:${getScoreColor(sc)}">${sc >= 90 ? 'Good' : sc >= 50 ? 'Needs Work' : 'Poor'}</div>
+                    </div>`;
                 }).join('')}</div>`;
+            } else {
+                document.getElementById('vitals-analysis').innerHTML = `
+                    <div style="text-align:center;padding:30px;color:var(--text-muted)">
+                        <div style="font-size:32px;margin-bottom:12px">📊</div>
+                        <p>Core Web Vitals data unavailable.</p>
+                        <p style="font-size:12px;margin-top:8px">PageSpeed API could not be reached. Try again later.</p>
+                    </div>
+                `;
             }
 
+            // Filmstrip
             const film = a['screenshot-thumbnails']?.details?.items;
-            document.getElementById('filmstrip-container').innerHTML = film ? `<div class="filmstrip">${film.slice(0, 8).map(f => `<div class="filmstrip-frame"><img src="${f.data}"><span>${(f.timing / 1000).toFixed(1)}s</span></div>`).join('')}</div>` : '<p style="color:var(--text-muted); text-align: center; padding: 20px;">Add PageSpeed API key to view loading timeline</p>';
+            document.getElementById('filmstrip-container').innerHTML = film 
+                ? `<div class="filmstrip">${film.slice(0, 8).map(f => `<div class="filmstrip-frame"><img src="${f.data}"><span>${(f.timing / 1000).toFixed(1)}s</span></div>`).join('')}</div>` 
+                : '<p style="color:var(--text-muted);text-align:center;padding:20px">Loading timeline not available.</p>';
 
-            document.getElementById('resource-analysis').innerHTML = hasPS ? `<div class="data-item"><span class="data-label">📦 Total Size</span><span class="data-value">${a['total-byte-weight']?.displayValue || 'N/A'}</span></div><div class="data-item"><span class="data-label">🌐 Requests</span><span class="data-value">${a['network-requests']?.details?.items?.length || 'N/A'}</span></div><div class="data-item"><span class="data-label">📄 DOM Size</span><span class="data-value">${a['dom-size']?.displayValue || 'N/A'}</span></div>` : '<p style="color:var(--text-muted); text-align: center; padding: 20px;">Add PageSpeed API key to view resource analysis</p>';
+            // Resources
+            if (hasData) {
+                document.getElementById('resource-analysis').innerHTML = `
+                    <div class="data-item"><span class="data-label">📦 Total Size</span><span class="data-value">${a['total-byte-weight']?.displayValue || 'N/A'}</span></div>
+                    <div class="data-item"><span class="data-label">🌐 Requests</span><span class="data-value">${a['network-requests']?.details?.items?.length || 'N/A'}</span></div>
+                    <div class="data-item"><span class="data-label">📄 DOM Size</span><span class="data-value">${a['dom-size']?.displayValue || 'N/A'}</span></div>
+                `;
+            } else {
+                document.getElementById('resource-analysis').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px">Resource data unavailable.</p>';
+            }
 
+            // Opportunities
             const opps = Object.values(a).filter(x => x.details?.type === 'opportunity' && x.score !== null && x.score < 1).sort((x, y) => (x.score || 0) - (y.score || 0)).slice(0, 5);
-            document.getElementById('performance-opportunities').innerHTML = hasPS ? (opps.length > 0 ? `<ul class="issues-list">${opps.map(o => `<li class="issue-item"><div class="issue-icon ${o.score < 0.5 ? 'critical' : 'warning'}">!</div><div class="issue-content"><h5>${o.title}</h5><p>${o.displayValue || ''}</p></div></li>`).join('')}</ul>` : '<p style="color:var(--accent-primary)">✓ No major issues.</p>') : '<p style="color:var(--text-muted); text-align: center; padding: 20px;">Add PageSpeed API key to view opportunities</p>';
+            document.getElementById('performance-opportunities').innerHTML = opps.length > 0 
+                ? `<ul class="issues-list">${opps.map(o => `<li class="issue-item"><div class="issue-icon ${o.score < 0.5 ? 'critical' : 'warning'}">!</div><div class="issue-content"><h5>${o.title}</h5><p>${o.displayValue || ''}</p></div></li>`).join('')}</ul>` 
+                : `<p style="color:${hasData ? 'var(--accent-primary)' : 'var(--text-muted)'};">${hasData ? '✓ No major optimization opportunities found.' : 'Opportunity data unavailable.'}</p>`;
         }
 
         function renderLinks(seo) {
-            document.getElementById('internal-links').innerHTML = `<div class="data-item"><span class="data-label">Count</span><span class="data-value">${seo.links?.internalCount || 0}</span></div>${(seo.links?.internal || []).slice(0, 5).map(l => `<div style="padding:6px 0;font-size:12px;border-bottom:1px solid var(--border-color)"><div style="color:var(--accent-primary);word-break:break-all">${l.href}</div></div>`).join('')}`;
-            document.getElementById('external-links').innerHTML = `<div class="data-item"><span class="data-label">Count</span><span class="data-value">${seo.links?.externalCount || 0}</span></div>${(seo.links?.external || []).slice(0, 5).map(l => `<div style="padding:6px 0;font-size:12px;border-bottom:1px solid var(--border-color)"><div style="color:var(--info);word-break:break-all">${l.href}</div></div>`).join('')}`;
-            document.getElementById('site-structure').innerHTML = `<div class="metric-grid"><div class="metric-item"><div class="metric-value">${seo.links?.internalCount || 0}</div><div class="metric-label">Internal</div></div><div class="metric-item"><div class="metric-value">${seo.links?.externalCount || 0}</div><div class="metric-label">External</div></div><div class="metric-item"><div class="metric-value">${seo.technical?.scriptCount || 0}</div><div class="metric-label">Scripts</div></div><div class="metric-item"><div class="metric-value">${seo.technical?.styleCount || 0}</div><div class="metric-label">Styles</div></div></div>`;
-            document.getElementById('sitemap-analysis').innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><a href="${seo.url}robots.txt" target="_blank" class="btn btn-secondary" style="padding:8px 14px;font-size:12px">robots.txt ↗</a><a href="${seo.url}sitemap.xml" target="_blank" class="btn btn-secondary" style="padding:8px 14px;font-size:12px">sitemap.xml ↗</a></div>`;
+            document.getElementById('internal-links').innerHTML = `
+                <div class="data-item"><span class="data-label">Count</span><span class="data-value">${seo.links?.internalCount || 0}</span></div>
+                ${(seo.links?.internal || []).slice(0, 5).map(l => `<div style="padding:6px 0;font-size:12px;border-bottom:1px solid var(--border-color)"><div style="color:var(--accent-primary);word-break:break-all">${l.href}</div></div>`).join('')}
+            `;
+            document.getElementById('external-links').innerHTML = `
+                <div class="data-item"><span class="data-label">Count</span><span class="data-value">${seo.links?.externalCount || 0}</span></div>
+                ${(seo.links?.external || []).slice(0, 5).map(l => `<div style="padding:6px 0;font-size:12px;border-bottom:1px solid var(--border-color)"><div style="color:var(--info);word-break:break-all">${l.href}</div></div>`).join('')}
+            `;
+            document.getElementById('site-structure').innerHTML = `
+                <div class="metric-grid">
+                    <div class="metric-item"><div class="metric-value">${seo.links?.internalCount || 0}</div><div class="metric-label">Internal</div></div>
+                    <div class="metric-item"><div class="metric-value">${seo.links?.externalCount || 0}</div><div class="metric-label">External</div></div>
+                    <div class="metric-item"><div class="metric-value">${seo.technical?.scriptCount || 0}</div><div class="metric-label">Scripts</div></div>
+                    <div class="metric-item"><div class="metric-value">${seo.technical?.styleCount || 0}</div><div class="metric-label">Styles</div></div>
+                </div>
+            `;
+            document.getElementById('sitemap-analysis').innerHTML = `
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <a href="${seo.url}robots.txt" target="_blank" class="btn btn-secondary" style="padding:8px 14px;font-size:12px">robots.txt ↗</a>
+                    <a href="${seo.url}sitemap.xml" target="_blank" class="btn btn-secondary" style="padding:8px 14px;font-size:12px">sitemap.xml ↗</a>
+                </div>
+            `;
         }
 
         function renderComparison() {
             const c = document.getElementById('comparison-content');
             if (state.competitors.length === 0 || Object.keys(state.competitorData).length === 0) {
-                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><h3>Add Competitors</h3><p>Add URLs to compare.</p></div>';
+                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><h3>Add Competitors</h3><p>Add URLs above to compare.</p></div>';
                 return;
             }
 
@@ -1241,8 +1478,8 @@ Provide HTML formatted recommendations with h4 headings for: Executive Summary, 
                 { l: 'Overall', g: d => d.scores?.overall || 0 },
                 { l: 'Technical', g: d => d.scores?.technical || 0 },
                 { l: 'Content', g: d => d.scores?.content || 0 },
-                { l: 'Performance', g: d => d.scores?.performance || 0 },
-                { l: 'SEO', g: d => d.scores?.seo || 0 },
+                { l: 'Performance', g: d => d.scores?.performance ?? 'N/A' },
+                { l: 'SEO', g: d => d.scores?.seo ?? 'N/A' },
                 { l: 'Words', g: d => d.seoData?.content?.wordCount || 0 },
                 { l: 'Images', g: d => d.seoData?.images?.total || 0 },
                 { l: 'Links', g: d => d.seoData?.links?.totalCount || 0 }
@@ -1250,13 +1487,20 @@ Provide HTML formatted recommendations with h4 headings for: Executive Summary, 
 
             c.innerHTML = `<div class="analysis-card"><div class="analysis-card-header"><h3>📊 Comparison</h3></div><div class="analysis-card-body" style="overflow-x:auto"><table class="comparison-table"><thead><tr><th>Metric</th>${all.map(s => `<th style="${s.isMain ? 'color:var(--accent-primary)' : ''}">${extractDomain(s.url)}</th>`).join('')}</tr></thead><tbody>${metrics.map(m => {
                 const vals = all.map(s => m.g(s));
-                const max = Math.max(...vals);
-                return `<tr><td><strong>${m.l}</strong></td>${all.map((s, i) => `<td style="color:${vals[i] === max ? 'var(--accent-primary)' : 'inherit'}">${vals[i]}</td>`).join('')}</tr>`;
+                const numVals = vals.filter(v => typeof v === 'number');
+                const max = numVals.length > 0 ? Math.max(...numVals) : null;
+                return `<tr><td><strong>${m.l}</strong></td>${all.map((s, i) => `<td style="color:${vals[i] === max && typeof vals[i] === 'number' ? 'var(--accent-primary)' : 'inherit'}">${vals[i]}</td>`).join('')}</tr>`;
             }).join('')}</tbody></table></div></div>`;
         }
 
         function exportJSON() {
-            const data = { url: state.mainSite, ...state.analysisData, competitors: state.competitorData };
+            const data = { 
+                url: state.mainSite, 
+                ...state.analysisData, 
+                competitors: state.competitorData,
+                apiStatus: state.apiStatus,
+                exportedAt: new Date().toISOString()
+            };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -1266,6 +1510,50 @@ Provide HTML formatted recommendations with h4 headings for: Executive Summary, 
 
         document.getElementById('website-url').addEventListener('keypress', e => { if (e.key === 'Enter') startAnalysis(); });
         document.getElementById('competitor-url').addEventListener('keypress', e => { if (e.key === 'Enter') addCompetitor(); });
+        
+        // Debug function to test PageSpeed API directly
+        async function testPageSpeedAPI() {
+            const testUrl = 'https://example.com';
+            const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(testUrl)}&strategy=mobile&category=performance&key=${PAGESPEED_KEY}`;
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'api-warning';
+            resultDiv.innerHTML = '<span class="api-warning-icon">⏳</span><span>Testing PageSpeed API...</span>';
+            document.querySelector('.search-section').appendChild(resultDiv);
+            
+            try {
+                console.log('Testing API with URL:', api);
+                const startTime = Date.now();
+                
+                const response = await fetch(api);
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.error) {
+                    resultDiv.className = 'api-warning error';
+                    resultDiv.innerHTML = `<span class="api-warning-icon">❌</span><span>API Error (${elapsed}s): ${data.error.message}<br><small>Code: ${data.error.code} | Check if API key is valid and has PageSpeed API enabled</small></span>`;
+                } else if (data.lighthouseResult) {
+                    const perfScore = Math.round((data.lighthouseResult.categories?.performance?.score || 0) * 100);
+                    resultDiv.className = 'api-warning success';
+                    resultDiv.innerHTML = `<span class="api-warning-icon">✅</span><span>API Working! (${elapsed}s) - Test site performance: ${perfScore}/100<br><small>The API is functioning correctly. If analysis still fails, the target website may be blocking requests or timing out.</small></span>`;
+                } else {
+                    resultDiv.className = 'api-warning';
+                    resultDiv.innerHTML = `<span class="api-warning-icon">⚠️</span><span>Unexpected response (${elapsed}s)<br><small>${JSON.stringify(data).substring(0, 200)}</small></span>`;
+                }
+            } catch (e) {
+                console.error('Test failed:', e);
+                resultDiv.className = 'api-warning error';
+                resultDiv.innerHTML = `<span class="api-warning-icon">❌</span><span>Request Failed: ${e.name} - ${e.message}<br><small>This could be a CORS issue, network problem, or blocked request. Check browser console (F12) for details.</small></span>`;
+            }
+            
+            // Auto-remove after 30 seconds
+            setTimeout(() => resultDiv.remove(), 30000);
+        }
     </script>
 </body>
 </html>
