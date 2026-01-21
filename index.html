@@ -39,7 +39,7 @@
             --border-accent: #3d3d5c;
             --text-primary: #f5f5fa;
             --text-secondary: #9595b0;
-            --text-tertiary: #6565820;
+            --text-tertiary: #656582;
             --text-muted: #4a4a65;
             --accent-cyan: #00e5cc;
             --accent-cyan-dim: #00b8a3;
@@ -3435,16 +3435,20 @@ Language: ${seo.technical?.lang || 'Not set'}
         }
 
         // ===== INIT =====
-        document.getElementById('url-input').addEventListener('keypress', e => {
-            if (e.key === 'Enter') runAnalysis();
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SEO Analyzer Pro loaded successfully');
+            
+            document.getElementById('url-input').addEventListener('keypress', e => {
+                if (e.key === 'Enter') runAnalysis();
+            });
 
-        document.getElementById('competitor-input').addEventListener('keypress', e => {
-            if (e.key === 'Enter') addCompetitor();
-        });
+            document.getElementById('competitor-input').addEventListener('keypress', e => {
+                if (e.key === 'Enter') addCompetitor();
+            });
 
-        document.querySelectorAll('.toggle-chip').forEach(chip => {
-            chip.addEventListener('click', () => chip.classList.toggle('active'));
+            document.querySelectorAll('.toggle-chip').forEach(chip => {
+                chip.addEventListener('click', () => chip.classList.toggle('active'));
+            });
         });
     </script>
 </body>
