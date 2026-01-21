@@ -2297,20 +2297,27 @@ Provide a comprehensive SEO report in HTML format with these sections:
 Use <h4> tags for section headers and <ul><li> for lists. Use <strong> for emphasis.
 Do NOT wrap in markdown code blocks - return raw HTML only.`;
 
-            // Try APIFreeLLM first (primary provider)
+            // ===== PRIMARY: Zhipu GLM-4.7-Flash =====
+            // API Docs: https://open.bigmodel.cn/api/paas/v4/chat/completions
             try {
-                console.log('Trying APIFreeLLM...');
+                console.log('Trying Zhipu GLM-4.7-Flash...');
                 const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout for free tier delay
+                const timeout = setTimeout(() => controller.abort(), 90000);
                 
-                const response = await fetch('https://apifreellm.com/api/v1/chat', {
+                const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer apf_gydi6tf507lt0rpuvqe9x6da'
+                        'Authorization': 'Bearer 8c267a4a2fdc48ae98fd436bc74268d9.2NUMHc0p4i8pafSk'
                     },
                     body: JSON.stringify({
-                        message: prompt
+                        model: 'glm-4-flash',
+                        messages: [
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: 0.7,
+                        top_p: 0.9,
+                        max_tokens: 2048
                     }),
                     signal: controller.signal
                 });
@@ -2318,71 +2325,82 @@ Do NOT wrap in markdown code blocks - return raw HTML only.`;
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.response && data.response.length > 100) {
-                        console.log('✓ APIFreeLLM success');
-                        let content = data.response;
-                        content = content.replace(/```html/g, '').replace(/```/g, '');
-                        return `<div style="background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #f97316;">🤖 AI Provider: <strong>APIFreeLLM</strong> (Free Tier)</div>` + content;
+                    const content = data.choices?.[0]?.message?.content;
+                    if (content && content.length > 100) {
+                        console.log('✓ Zhipu GLM-4.7-Flash success');
+                        let cleanContent = content.replace(/```html/gi, '').replace(/```/g, '').trim();
+                        return `<div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #22c55e;">🤖 AI Provider: <strong>Zhipu GLM-4.7-Flash</strong></div>` + cleanContent;
                     }
-                } else if (response.status === 429) {
-                    console.log('APIFreeLLM rate limited, waiting...');
-                    await new Promise(r => setTimeout(r, 6000));
-                    // Retry once after rate limit
-                    const retryResponse = await fetch('https://apifreellm.com/api/v1/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer apf_gydi6tf507lt0rpuvqe9x6da'
-                        },
-                        body: JSON.stringify({ message: prompt })
-                    });
-                    if (retryResponse.ok) {
-                        const data = await retryResponse.json();
-                        if (data.success && data.response) {
-                            let content = data.response;
-                            content = content.replace(/```html/g, '').replace(/```/g, '');
-                            return `<div style="background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #f97316;">🤖 AI Provider: <strong>APIFreeLLM</strong> (Free Tier)</div>` + content;
-                        }
-                    }
+                } else {
+                    console.log('Zhipu API error:', response.status, await response.text().catch(() => ''));
                 }
             } catch (e) {
-                console.log('APIFreeLLM failed:', e.message);
+                console.log('Zhipu GLM failed:', e.message);
             }
 
-            // Fallback: Pollinations AI (free, no key needed)
+            // ===== FALLBACK 1: Pollinations AI (POST endpoint - OpenAI compatible) =====
+            // API Docs: https://text.pollinations.ai/openai
             try {
-                console.log('Trying Pollinations AI fallback...');
+                console.log('Trying Pollinations AI (POST)...');
                 const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 45000);
+                const timeout = setTimeout(() => controller.abort(), 60000);
                 
-                const response = await fetch('https://text.pollinations.ai/', {
+                const response = await fetch('https://text.pollinations.ai/openai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        messages: [{ role: 'user', content: prompt }],
                         model: 'openai',
-                        seed: Date.now()
+                        messages: [
+                            { role: 'system', content: 'You are an expert SEO consultant. Respond only in HTML format, no markdown code blocks.' },
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 2000
                     }),
                     signal: controller.signal
                 });
                 clearTimeout(timeout);
 
                 if (response.ok) {
-                    let content = await response.text();
-                    content = content.replace(/```html/g, '').replace(/```/g, '');
-                    if (content.length > 100) {
-                        console.log('✓ Pollinations AI success');
-                        return `<div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: var(--accent-blue);">🤖 AI Provider: <strong>Pollinations AI</strong> (Fallback)</div>` + content;
+                    const data = await response.json();
+                    const content = data.choices?.[0]?.message?.content;
+                    if (content && content.length > 100) {
+                        console.log('✓ Pollinations AI (POST) success');
+                        let cleanContent = content.replace(/```html/gi, '').replace(/```/g, '').trim();
+                        return `<div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #3b82f6;">🤖 AI Provider: <strong>Pollinations AI</strong></div>` + cleanContent;
                     }
                 }
             } catch (e) {
-                console.log('Pollinations API failed:', e.message);
+                console.log('Pollinations POST failed:', e.message);
             }
 
-            // Final fallback: Local generation (always works)
+            // ===== FALLBACK 2: Pollinations AI (Simple GET endpoint) =====
+            // API Docs: https://text.pollinations.ai/{prompt}
+            try {
+                console.log('Trying Pollinations AI (GET)...');
+                const shortPrompt = `Analyze this website for SEO. URL: ${seo.url}, Score: ${scores.overall}/100, Title length: ${seo.meta?.titleLength || 0}, H1 count: ${seo.headings?.h1?.count}, Images missing alt: ${seo.images?.withoutAlt}, HTTPS: ${seo.technical?.isHttps}. Give 5 key SEO recommendations in HTML format using h4 headers and ul/li lists. No markdown.`;
+                
+                const encodedPrompt = encodeURIComponent(shortPrompt);
+                const url = `https://text.pollinations.ai/${encodedPrompt}?model=openai&temperature=0.7`;
+                
+                const response = await fetch(url, { method: 'GET' });
+
+                if (response.ok) {
+                    let content = await response.text();
+                    if (content && content.length > 50) {
+                        console.log('✓ Pollinations AI (GET) success');
+                        content = content.replace(/```html/gi, '').replace(/```/g, '').trim();
+                        return `<div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #3b82f6;">🤖 AI Provider: <strong>Pollinations AI</strong></div>` + content;
+                    }
+                }
+            } catch (e) {
+                console.log('Pollinations GET failed:', e.message);
+            }
+
+            // ===== FINAL FALLBACK: Local generation (always works) =====
             console.log('Using local AI fallback');
             const localContent = generateLocalRecommendations(seo, scores);
-            return `<div style="background: rgba(0,229,204,0.1); border: 1px solid rgba(0,229,204,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: var(--accent-cyan);">🤖 AI Provider: <strong>Local Analysis Engine</strong> (Offline Mode)</div>` + localContent;
+            return `<div style="background: rgba(0,229,204,0.1); border: 1px solid rgba(0,229,204,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #00e5cc;">🤖 AI Provider: <strong>Local Analysis Engine</strong> (Offline Mode)</div>` + localContent;
         }
 
         function generateLocalRecommendations(seo, scores) {
