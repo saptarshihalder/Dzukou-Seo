@@ -1329,6 +1329,8 @@
 
       // NOTE: Do not hardcode private keys in production.
       const PAGESPEED_API_KEY = 'AIzaSyDJsI1F6OG6XHnvM2-rYU376kZpQKA0_ns';
+      const SHIVAAY_API_KEY = '6979babc3bb9326d46566a2d';
+      const SHIVAAY_API_URL = 'https://api.futurixai.com/api/lara/v1/chat/completions';
 
       const CORS_PROXIES = [
         'https://api.allorigins.win/raw?url=',
@@ -1481,6 +1483,92 @@
           }
         }
         return null;
+      }
+
+      // ===== AI GENERATION LOGIC =====
+      function constructPrompt(seo, scores) {
+        return `You are an expert SEO analyst. Analyze this website data and provide a brief report with 3 critical issues, 3 quick wins, and a summary. Return strictly HTML code (using <h4>, <ul>, <li>, <strong>) without markdown code blocks.
+        
+        Data:
+        - URL: ${seo.url}
+        - Overall Score: ${scores.overall}/100
+        - Title: "${seo.meta?.title || 'Missing'}" (${seo.meta?.titleLength || 0} chars)
+        - Description: "${seo.meta?.description || 'Missing'}" (${seo.meta?.descriptionLength || 0} chars)
+        - H1 Count: ${seo.headings?.h1?.count || 0}
+        - Word Count: ${seo.content?.wordCount || 0}
+        - Images Missing Alt: ${seo.images?.withoutAlt || 0}
+        - HTTPS: ${seo.technical?.isHttps}
+        `;
+      }
+
+      async function callShivaay(prompt) {
+        const response = await fetch(SHIVAAY_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SHIVAAY_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: "shivaay",
+            messages: [
+              { role: "system", content: "You are Shivaay, an intelligent SEO assistant." },
+              { role: "user", content: prompt }
+            ],
+            temperature: 0.7,
+            top_p: 0.8,
+            repetition_penalty: 1.05,
+            max_tokens: 1000,
+            stream: false
+          })
+        });
+
+        if (!response.ok) throw new Error('Shivaay API failed');
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || data.message || '';
+      }
+
+      async function callPollinations(prompt) {
+        // Pollinations.ai text generation fallback
+        // Using GET request which is common for simple pollinations text prompts
+        const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Pollinations API failed');
+        return await response.text();
+      }
+
+      async function updateAISection(seo, scores) {
+        const container = document.getElementById('ai-content');
+        container.innerHTML = '<div class="loader-ring" style="width:30px;height:30px;border-width:2px;margin:0 auto;"></div><p style="text-align:center;margin-top:10px;color:var(--text-secondary)">Generating AI insights...</p>';
+
+        const prompt = constructPrompt(seo, scores);
+
+        // 1. Try Shivaay (Primary)
+        try {
+          console.log('Attempting Shivaay AI...');
+          const aiResponse = await callShivaay(prompt);
+          if (aiResponse) {
+            container.innerHTML = aiResponse.replace(/```html/g, '').replace(/```/g, ''); // Clean markdown if present
+            return;
+          }
+        } catch (e) {
+          console.warn('Shivaay API failed, switching to backup...', e);
+        }
+
+        // 2. Try Pollinations (Backup)
+        try {
+          console.log('Attempting Pollinations AI...');
+          const aiResponse = await callPollinations(prompt);
+          if (aiResponse) {
+            container.innerHTML = aiResponse.replace(/```html/g, '').replace(/```/g, '');
+            return;
+          }
+        } catch (e) {
+          console.warn('Pollinations API failed, switching to local heuristic...', e);
+        }
+
+        // 3. Fallback to Local Heuristic
+        console.log('Using Local Heuristic...');
+        container.innerHTML = generateLocalRecommendations(seo, scores);
       }
 
       // ===== SEO EXTRACTION =====
@@ -2130,7 +2218,7 @@
         renderChecklist(seo);
 
         // AI panel (local fallback)
-        document.getElementById('ai-content').innerHTML = generateLocalRecommendations(seo, scores);
+        updateAISection(seo, scores);
 
         showLoading(false);
       };
