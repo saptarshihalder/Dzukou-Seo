@@ -1317,7 +1317,15 @@
   </div>
 
   <script>
+    // Global error handler
+    window.onerror = function(msg, url, line, col, error) {
+      console.error('Global Error:', msg, 'at', url, ':', line, ':', col, 'Error object:', error);
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
+      // Test if JavaScript is even executing
+      console.log('Script loaded: DOMContentLoaded execution started');
+
       // ===== STATE =====
       const APP = {
         url: null,
@@ -1417,6 +1425,7 @@
 
       // ===== API CALLS =====
       async function fetchPageSpeed(url, retries = 3) {
+        console.log(`Fetching PageSpeed for ${url}, attempt 1/${retries}`);
         const apiURL = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=accessibility&category=best-practices&category=seo&key=${PAGESPEED_API_KEY}`;
 
         APP.lastError = null;
@@ -1457,6 +1466,7 @@
             APP.lastError = 'Incomplete response';
             if (attempt < retries) await new Promise(r => setTimeout(r, 2000 * attempt));
           } catch (e) {
+            console.error('PageSpeed Fetch Error:', e);
             APP.lastError = `${e.name}: ${e.message}`;
             if (attempt < retries) await new Promise(r => setTimeout(r, 2000 * attempt));
           }
@@ -1465,6 +1475,7 @@
       }
 
       async function fetchHTML(url) {
+        console.log(`Fetching HTML for ${url}`);
         for (let i = 0; i < CORS_PROXIES.length; i++) {
           const idx = (currentProxy + i) % CORS_PROXIES.length;
           try {
@@ -1541,11 +1552,12 @@
         const container = document.getElementById('ai-content');
         container.innerHTML = '<div class="loader-ring" style="width:30px;height:30px;border-width:2px;margin:0 auto;"></div><p style="text-align:center;margin-top:10px;color:var(--text-secondary)">Generating AI insights...</p>';
 
+        console.log('Starting AI analysis...');
         const prompt = constructPrompt(seo, scores);
 
         // 1. Try Shivaay (Primary)
         try {
-          console.log('Attempting Shivaay AI...');
+          console.log('Attempting Shivaay AI via HTTPS...');
           const aiResponse = await callShivaay(prompt);
           if (aiResponse) {
             container.innerHTML = aiResponse.replace(/```html/g, '').replace(/```/g, ''); // Clean markdown if present
@@ -2181,17 +2193,21 @@
       };
 
       window.runAnalysis = async function() {
+        console.log('runAnalysis triggered');
         const input = document.getElementById('url-input');
         const url = window.normalizeURL(input.value);
+        console.log('Normalized URL:', url);
         if (!url) return;
 
         APP.url = url;
         showLoading(true, 'Running analysis...', 'Fetching PageSpeed data', 15);
 
         const ps = await fetchPageSpeed(url, 2);
+        console.log('PageSpeed Result:', ps ? 'Success' : 'Failed');
 
         showLoading(true, 'Running analysis...', 'Fetching HTML (CORS proxy)', 35);
         const html = await fetchHTML(url);
+        console.log('HTML Fetch Result:', html ? 'Success' : 'Failed');
 
         showLoading(true, 'Running analysis...', 'Extracting SEO data', 55);
         let seo = null;
