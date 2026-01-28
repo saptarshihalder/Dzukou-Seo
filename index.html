@@ -20,12 +20,13 @@
   <meta name="twitter:title" content="SEO Analyzer Pro | Free SEO Tool" />
   <meta name="twitter:description" content="Free professional SEO analysis with real Google PageSpeed data." />
 
-  <!-- Favicon (Fixed: URL Encoded to prevent parsing errors) -->
+  <!-- Favicon: Standardized & URL Encoded to prevent parsing errors on GitHub Pages -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20fill%3D%22%230a0a0f%22%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%2F%3E%3Ctext%20y%3D%22.9em%22%20x%3D%2250%25%22%20text-anchor%3D%22middle%22%20font-size%3D%2270%22%20fill%3D%22%2300e5cc%22%3ES%3C%2Ftext%3E%3C%2Fsvg%3E" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <!-- Fixed: Escaped ampersands in Google Fonts URL -->
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Playfair+Display:wght@700;800&amp;display=swap" rel="stylesheet" />
 
   <style>
     :root {
@@ -1349,7 +1350,7 @@
       };
 
       window.getDomain = function(url) {
-        try { return new URL(normalizeURL(url)).hostname; }
+        try { return new URL(window.normalizeURL(url)).hostname; }
         catch { return url; }
       };
 
@@ -1388,7 +1389,7 @@
       // ===== COMPETITORS =====
       window.addCompetitor = function() {
         const input = document.getElementById('competitor-input');
-        const url = normalizeURL(input.value);
+        const url = window.normalizeURL(input.value);
         if (!url || APP.competitors.includes(url) || APP.competitors.length >= 5) {
           input.value = '';
           return;
@@ -1407,7 +1408,7 @@
         document.getElementById('competitor-chips').innerHTML = APP.competitors
           .map((url, i) => `
             <div class="chip">
-              <span>${getDomain(url)}</span>
+              <span>${window.getDomain(url)}</span>
               <button class="chip-remove" onclick="removeCompetitor(${i})">×</button>
             </div>
           `)
@@ -1574,7 +1575,7 @@
       // ===== SEO EXTRACTION =====
       function extractSEOData(html, url) {
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        const domain = getDomain(url);
+        const domain = window.getDomain(url);
 
         const data = {
           url,
@@ -2181,7 +2182,7 @@
 
       window.runAnalysis = async function() {
         const input = document.getElementById('url-input');
-        const url = normalizeURL(input.value);
+        const url = window.normalizeURL(input.value);
         if (!url) return;
 
         APP.url = url;
@@ -2195,8 +2196,8 @@
         showLoading(true, 'Running analysis...', 'Extracting SEO data', 55);
         let seo = null;
         if (html) seo = extractSEOData(html, url);
-        else if (ps) seo = { url, domain: getDomain(url), meta: {}, headings: {}, content: {}, links: {}, images: {}, technical: {}, schema: [] };
-        else seo = { url, domain: getDomain(url), meta: {}, headings: {}, content: {}, links: {}, images: {}, technical: {}, schema: [] };
+        else if (ps) seo = { url, domain: window.getDomain(url), meta: {}, headings: {}, content: {}, links: {}, images: {}, technical: {}, schema: [] };
+        else seo = { url, domain: window.getDomain(url), meta: {}, headings: {}, content: {}, links: {}, images: {}, technical: {}, schema: [] };
 
         showLoading(true, 'Running analysis...', 'Scoring', 70);
         const scores = calculateScores(seo, ps);
