@@ -1347,7 +1347,7 @@
             url: null,
             competitors: [],
             data: { seo: null, pageSpeed: null, scores: null },
-            competitorData: {},
+            competitorData: [],
             apiWorking: false,
             lastError: null,
           };
@@ -2330,6 +2330,71 @@ Remember: Return ONLY pure HTML. No markdown formatting, no code blocks, no back
             document.getElementById('technical-checklist').innerHTML = tech.map(row).join('');
           }
 
+          function renderCompetitorAnalysis() {
+            const container = document.getElementById('competitors-content');
+            if (!APP.competitorData || APP.competitorData.length === 0) return;
+
+            // Helper to safely get values
+            const getVal = (obj, path) => path.split('.').reduce((o, k) => (o || {})[k], obj);
+
+            const metrics = [
+              { label: 'Overall Score', path: 'scores.overall', isScore: true },
+              { label: 'Performance', path: 'scores.performance', isScore: true },
+              { label: 'SEO Score', path: 'scores.seo', isScore: true },
+              { label: 'Word Count', path: 'seo.content.wordCount' },
+              { label: 'H1 Tags', path: 'seo.headings.h1.count' },
+              { label: 'Images', path: 'seo.images.total' },
+              { label: 'On-Page Links', path: 'seo.links.totalCount' },
+            ];
+
+            let html = `
+              <div class="analysis-card">
+                <div class="card-header"><div class="card-title">⚔️ Competitor Benchmark</div></div>
+                <div class="card-body" style="overflow-x: auto;">
+                  <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                    <thead>
+                      <tr style="text-align: left; border-bottom: 2px solid var(--border-default);">
+                        <th style="padding: 16px; color: var(--text-secondary); font-size: 12px; text-transform: uppercase;">Metric</th>
+                        <th style="padding: 16px; color: var(--accent-cyan); font-size: 14px;">${window.getDomain(APP.url)}<br><span style="font-size:10px; opacity:0.7">(You)</span></th>
+                        ${APP.competitors.map(url => `<th style="padding: 16px; font-size: 14px;">${window.getDomain(url)}</th>`).join('')}
+                      </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            metrics.forEach(m => {
+              const mainVal = getVal(APP.data, m.path) ?? '-';
+              const mainColor = m.isScore ? getScoreColor(mainVal) : 'inherit';
+              
+              html += `<tr>
+                <td style="padding: 16px; border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 13px; font-weight: 600;">${m.label}</td>
+                <td style="padding: 16px; border-bottom: 1px solid var(--border-subtle); font-family: 'IBM Plex Mono', monospace; font-weight: 700; color: ${mainColor}">${mainVal}</td>`;
+                
+              APP.competitorData.forEach(d => {
+                const val = getVal(d, m.path) ?? '-';
+                const color = m.isScore ? getScoreColor(val) : 'inherit';
+                html += `<td style="padding: 16px; border-bottom: 1px solid var(--border-subtle); font-family: 'IBM Plex Mono', monospace; color: ${color}">${val}</td>`;
+              });
+              
+              html += `</tr>`;
+            });
+
+            html += `</tbody></table></div></div>`;
+            container.innerHTML = html;
+          }
+
+          async function analyzeSite(targetUrl) {
+              const ps = await fetchPageSpeed(targetUrl, 1); // Less retries for competitors to speed up
+              const html = await fetchHTML(targetUrl);
+              let seo = null;
+              if (html) seo = extractSEOData(html, targetUrl);
+              else if (ps) seo = { url: targetUrl, domain: window.getDomain(targetUrl), meta: {}, headings: {}, content: {}, links: {}, images: {}, technical: {}, schema: [] };
+              else seo = { url: targetUrl, domain: window.getDomain(targetUrl), meta: {}, headings: {}, content: {}, links: {}, images: {}, technical: {}, schema: [] };
+              
+              const scores = calculateScores(seo, ps);
+              return { seo, pageSpeed: ps, scores };
+          }
+
           // ===== EXPORTS =====
           window.exportJSON = function() {
             const blob = new Blob([JSON.stringify(APP.data, null, 2)], { type: 'application/json' });
@@ -2363,43 +2428,47 @@ Remember: Return ONLY pure HTML. No markdown formatting, no code blocks, no back
             if (!url) return;
 
             APP.url = url;
-            showLoading(true, 'Running analysis...', 'Fetching PageSpeed data', 15);
+            showLoading(true, 'Running analysis...', 'Fetching Main Site Data', 10);
 
-            const ps = await fetchPageSpeed(url, 2);
-            console.log('PageSpeed Result:', ps ? 'Success' : 'Failed');
+            // Main Site
+            const mainData = await analyzeSite(url);
+            APP.data = mainData;
 
-            showLoading(true, 'Running analysis...', 'Fetching HTML (CORS proxy)', 35);
-            const html = await fetchHTML(url);
-            console.log('HTML Fetch Result:', html ? 'Success' : 'Failed');
-
-            showLoading(true, 'Running analysis...', 'Extracting SEO data', 55);
-            let seo = null;
-            if (html) seo = extractSEOData(html, url);
-            else if (ps) seo = { url, domain: window.getDomain(url), meta: {}, headings: {}, content: {}, links: {}, images: {}, technical: {}, schema: [] };
-            else seo = { url, domain: window.getDomain(url), meta: {}, headings: {}, content: {}, links: {}, images: {}, technical: {}, schema: [] };
-
-            showLoading(true, 'Running analysis...', 'Scoring', 70);
-            const scores = calculateScores(seo, ps);
-
-            APP.data = { seo, pageSpeed: ps, scores };
-
-            showLoading(true, 'Running analysis...', 'Rendering UI', 85);
+            // Render Main UI (existing calls)
+            renderStatusBanner(mainData.pageSpeed, mainData.seo ? "html_present" : null); // Simple check for now
+            renderSitePreview(mainData.seo, mainData.pageSpeed);
+            renderStats(mainData.seo, mainData.scores);
+            renderScores(mainData.scores, 'score-dashboard');
+            renderFindings(mainData.seo, mainData.scores, mainData.pageSpeed);
+            renderQuickWins(mainData.seo);
+            renderTechnical(mainData.seo);
+            renderContent(mainData.seo);
+            renderPerformance(mainData.pageSpeed, mainData.scores);
+            renderLinks(mainData.seo);
+            renderChecklist(mainData.seo);
             document.getElementById('results').classList.add('active');
-            renderStatusBanner(ps, html);
-            renderSitePreview(seo, ps);
-            renderStats(seo, scores);
-            renderScores(scores, 'score-dashboard');
-            renderFindings(seo, scores, ps);
-            renderQuickWins(seo);
-            renderTechnical(seo);
-            renderContent(seo);
-            renderPerformance(ps, scores);
-            renderLinks(seo);
-            renderChecklist(seo);
 
-            // AI panel (local fallback)
-            updateAISection(seo, scores);
+            // Competitors
+            if (APP.competitors.length > 0) {
+                APP.competitorData = [];
+                for (let i=0; i<APP.competitors.length; i++) {
+                    const compUrl = APP.competitors[i];
+                    showLoading(true, 'Analyzing Competitors...', `Scanning ${window.getDomain(compUrl)}`, 50 + (i/APP.competitors.length * 30));
+                    const compData = await analyzeSite(compUrl);
+                    APP.competitorData.push(compData);
+                }
+                renderCompetitorAnalysis();
+            } else {
+                 document.getElementById('competitors-content').innerHTML = `
+              <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <h3>No Competitors Added</h3>
+                <p>Add competitor URLs above to see a comparison analysis.</p>
+              </div>`;
+            }
 
+            // AI
+            updateAISection(APP.data.seo, APP.data.scores); // Pass main site data
             showLoading(false);
           };
 
