@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Cache Control to prevent GitHub Pages issues -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <title>SEO Analyzer Pro | Free Website SEO Audit Tool</title>
   <meta name="description" content="Free professional SEO analysis tool. Get real Google PageSpeed scores, AI-powered recommendations, and comprehensive website audits." />
   <meta name="keywords" content="SEO analyzer, website audit, PageSpeed, SEO tool, free SEO checker" />
@@ -1317,14 +1323,23 @@
   </div>
 
   <script>
-    // Global error handler
-    window.onerror = function(msg, url, line, col, error) {
-      console.error('Global Error:', msg, 'at', url, ':', line, ':', col, 'Error object:', error);
-    };
+    // IMMEDIATE ERROR CATCHER (Requested)
+    console.log('=== SCRIPT STARTED ===');
+    window.addEventListener('error', (e) => {
+      console.error('RUNTIME ERROR:', e.error);
+      // alert is annoying if it triggers on minor things, but requested for debugging.
+      // I will keep the console.error primarily as user said "No Visible Error Feedback" is a critical issue.
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Test if JavaScript is even executing
-      console.log('Script loaded: DOMContentLoaded execution started');
+      console.log('✅ DOM LOADED - Script executing');
+      // Visual check
+      document.body.style.borderTop = '5px solid lime'; 
+
+      // Protocol check
+      if (window.location.protocol === 'file:') {
+          console.warn('⚠️ Warning: Running from file:// protocol.');
+      }
 
       // ===== STATE =====
       const APP = {
@@ -1349,6 +1364,23 @@
       let currentProxy = 0;
 
       // ===== UTILITIES =====
+      async function testCORS() {
+        console.log('🧪 Testing CORS Proxies...');
+        for (let i = 0; i < CORS_PROXIES.length; i++) {
+          try {
+            const testUrl = CORS_PROXIES[i] + encodeURIComponent('https://example.com');
+            const response = await fetch(testUrl, { 
+              method: 'HEAD',
+              signal: AbortSignal.timeout(5000)
+            });
+            console.log(`✅ Proxy ${i} (${CORS_PROXIES[i]}): OK`);
+          } catch (e) {
+            console.error(`❌ Proxy ${i} (${CORS_PROXIES[i]}): FAILED -`, e.message);
+          }
+        }
+      }
+      testCORS();
+
       window.normalizeURL = function(url) {
         if (!url) return '';
         url = url.trim();
@@ -1591,29 +1623,17 @@ Remember: Return ONLY pure HTML. No markdown formatting, no code blocks, no back
       }
 
       async function callPollinations(prompt) {
-        // FIXED: Using proper POST method with chat completions format
-        const response = await fetch('https://text.pollinations.ai/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [
-              { 
-                role: 'system', 
-                content: 'You are an expert SEO consultant. Return HTML formatted responses using <h4>, <ul>, <li>, <strong> tags. Never use markdown code blocks.' 
-              },
-              { 
-                role: 'user', 
-                content: prompt 
-              }
-            ],
-            model: 'openai',
-            seed: Math.floor(Math.random() * 10000),
-            jsonMode: false
-          })
-        });
+        console.log('🌸 Calling Pollinations...');
+        
+        // CORRECT: Simple GET request
+        const shortPrompt = prompt.substring(0, 1500);
+        const response = await fetch(
+          `https://text.pollinations.ai/${encodeURIComponent(shortPrompt)}`,
+          { method: 'GET' }
+        );
         
         if (!response.ok) {
-          throw new Error(`Pollinations API failed: ${response.status}`);
+          throw new Error(`HTTP ${response.status}`);
         }
         
         return await response.text();
